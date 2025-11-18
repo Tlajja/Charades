@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.charades.data.WordRepository
 import com.example.charades.game.GameViewModel
 import com.example.charades.ui.CorrectView
+import com.example.charades.ui.GameResultsView
 import com.example.charades.ui.GameStartScreen
 import com.example.charades.ui.SkipView
 import com.example.charades.ui.WordView
@@ -31,7 +32,6 @@ fun CharadesNavigation() {
     val repository = remember { WordRepository(context) }
     val viewModel = remember { GameViewModel(repository) }
 
-    // This will manage the system UI globally based on the current screen
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     ManageSystemUi(route = navBackStackEntry?.destination?.route)
 
@@ -49,8 +49,10 @@ fun CharadesNavigation() {
         }
 
         composable("word") {
-            // Fetch the first word only when the game starts
             LaunchedEffect(Unit) {
+                viewModel.startTimer {
+                    navController.navigate("game_over") { popUpTo("start") }
+                }
                 if (viewModel.gameState.usedWords.isEmpty()) {
                     viewModel.getNextWord()
                 }
@@ -58,6 +60,7 @@ fun CharadesNavigation() {
 
             WordView(
                 word = viewModel.gameState.currentWord,
+                timeLeft = viewModel.gameState.timeLeft,
                 onCorrect = {
                     viewModel.markCorrect()
                     navController.navigate("correct")
@@ -88,13 +91,27 @@ fun CharadesNavigation() {
                 navController.navigate("word") { popUpTo("word") { inclusive = true } }
             }
         }
+
+        composable("game_over") {
+            GameResultsView(
+                points = viewModel.gameState.points,
+                onPlayAgain = {
+                    viewModel.resetGame()
+                    navController.navigate("word") { popUpTo("start") }
+                },
+                onGoToStart = {
+                    navController.popBackStack("start", inclusive = false)
+                }
+            )
+        }
     }
 }
+
 
 @Composable
 private fun ManageSystemUi(route: String?) {
     val context = LocalContext.current
-    val isGameScreen = route in listOf("word", "correct", "skip")
+    val isGameScreen = route in listOf("start", "word", "correct", "skip", "game_over")
 
     DisposableEffect(isGameScreen) {
         val activity = context as? Activity ?: return@DisposableEffect onDispose {}
@@ -102,19 +119,16 @@ private fun ManageSystemUi(route: String?) {
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
         if (isGameScreen) {
-            // Lock orientation and hide system bars for game screens
             val originalOrientation = activity.requestedOrientation
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             insetsController.hide(WindowInsetsCompat.Type.systemBars())
             insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
             onDispose {
-                // Restore orientation and show system bars when leaving game
                 activity.requestedOrientation = originalOrientation
                 insetsController.show(WindowInsetsCompat.Type.systemBars())
             }
         } else {
-            // Ensure system bars are visible for non-game screens
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             insetsController.show(WindowInsetsCompat.Type.systemBars())
             onDispose {}
