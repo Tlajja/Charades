@@ -1,9 +1,8 @@
 package com.example.charades.ui
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,6 +38,8 @@ import java.util.Locale
 fun WordView(
     word: String,
     timeLeft: Int,
+    isCountdownVisible: Boolean,
+    countdownValue: Int,
     onCorrect: () -> Unit,
     onSkip: () -> Unit,
     onBack: () -> Unit
@@ -47,18 +48,18 @@ fun WordView(
     val gyroscope = rememberGyroscope()
     var hasTriggered by remember(word) { mutableStateOf(false) }
 
-    LaunchedEffect(tilt.z, gyroscope.y) {
-        if (!hasTriggered) {
-            when {
-                // Skip: Tilted up OR rotating up
-                tilt.z > 7.0f && gyroscope.y < -3.0f -> {
-                    hasTriggered = true
-                    onSkip()
-                }
-                // Correct: Tilted down OR rotating down
-                tilt.z < -7.0f && gyroscope.y > 3.0f -> {
-                    hasTriggered = true
-                    onCorrect()
+    if (!isCountdownVisible) {
+        LaunchedEffect(tilt.z, gyroscope.y) {
+            if (!hasTriggered) {
+                when {
+                    tilt.z > 7.0f || gyroscope.y < -4.0f -> {
+                        hasTriggered = true
+                        onSkip()
+                    }
+                    tilt.z < -7.0f || gyroscope.y > 4.0f -> {
+                        hasTriggered = true
+                        onCorrect()
+                    }
                 }
             }
         }
@@ -90,52 +91,81 @@ fun WordView(
             )
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 64.dp, horizontal = 32.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            var dynamicFontSize by remember(word) { mutableStateOf(72.sp) }
-            var readyToDraw by remember(word) { mutableStateOf(false) }
-
+        if (isCountdownVisible) {
             Text(
-                text = word.uppercase(Locale.getDefault()),
-                fontSize = dynamicFontSize,
+                text = countdownValue.toString(),
+                fontSize = 120.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 fontFamily = FontFamily.Monospace,
-                textAlign = TextAlign.Center,
-                lineHeight = dynamicFontSize * 1.1f,
-                modifier = Modifier.alpha(if (readyToDraw) 1f else 0f),
-                onTextLayout = { textLayoutResult ->
-                    if (textLayoutResult.didOverflowHeight) {
-                        dynamicFontSize *= 0.95f
-                    } else {
-                        readyToDraw = true
-                    }
-                }
+                modifier = Modifier.animateContentSize()
             )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 64.dp, horizontal = 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                var dynamicFontSize by remember(word) { mutableStateOf(72.sp) }
+                var readyToDraw by remember(word) { mutableStateOf(false) }
+
+                Text(
+                    text = word.uppercase(Locale.getDefault()),
+                    fontSize = dynamicFontSize,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontFamily = FontFamily.Monospace,
+                    textAlign = TextAlign.Center,
+                    lineHeight = dynamicFontSize * 1.1f,
+                    modifier = Modifier.alpha(if (readyToDraw) 1f else 0f),
+                    onTextLayout = { textLayoutResult ->
+                        if (textLayoutResult.didOverflowHeight) {
+                            dynamicFontSize *= 0.95f
+                        } else {
+                            readyToDraw = true
+                        }
+                    }
+                )
+            }
         }
 
-        Text(
-            text = timeLeft.toString(),
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(32.dp)
-        )
+        if (!isCountdownVisible) {
+            Text(
+                text = timeLeft.toString(),
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(32.dp)
+            )
+        }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun WordViewPreview() {
+fun WordViewPreviewCountdown() {
     WordView(
-        word = "Labai Ilgas Dvigubas Žodis Kuris Netelpa",
+        word = "",
+        timeLeft = 60,
+        isCountdownVisible = true,
+        countdownValue = 3,
+        onCorrect = {},
+        onSkip = {},
+        onBack = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun WordViewPreviewWord() {
+    WordView(
+        word = "Ilgas Dvigubas Žodis Kuris Netelpa",
         timeLeft = 55,
+        isCountdownVisible = false,
+        countdownValue = 0,
         onCorrect = {},
         onSkip = {},
         onBack = {}

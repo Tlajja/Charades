@@ -49,18 +49,18 @@ fun CharadesNavigation() {
         }
 
         composable("word") {
+            // This effect starts the game (countdown + timer)
             LaunchedEffect(Unit) {
-                viewModel.startTimer {
+                viewModel.startGame {
                     navController.navigate("game_over") { popUpTo("start") }
-                }
-                if (viewModel.gameState.usedWords.isEmpty()) {
-                    viewModel.getNextWord()
                 }
             }
 
             WordView(
                 word = viewModel.gameState.currentWord,
                 timeLeft = viewModel.gameState.timeLeft,
+                isCountdownVisible = viewModel.gameState.isCountdownVisible,
+                countdownValue = viewModel.gameState.countdownValue,
                 onCorrect = {
                     viewModel.markCorrect()
                     navController.navigate("correct")
@@ -111,7 +111,7 @@ fun CharadesNavigation() {
 @Composable
 private fun ManageSystemUi(route: String?) {
     val context = LocalContext.current
-    val isGameScreen = route in listOf("start", "word", "correct", "skip", "game_over")
+    val isGameScreen = route in listOf("word", "correct", "skip", "game_over")
 
     DisposableEffect(isGameScreen) {
         val activity = context as? Activity ?: return@DisposableEffect onDispose {}

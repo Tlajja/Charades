@@ -14,7 +14,10 @@ data class GameState(
     val points: Int = 0,
     val currentWord: String = "",
     val usedWords: Set<String> = emptySet(),
-    val timeLeft: Int = 60
+    val timeLeft: Int = 60,
+    val isGameActive: Boolean = false,
+    val isCountdownVisible: Boolean = false,
+    val countdownValue: Int = 3
 )
 
 class GameViewModel(private val repository: WordRepository) : ViewModel() {
@@ -23,7 +26,26 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
 
     private var timerJob: Job? = null
 
-    fun startTimer(onTimeUp: () -> Unit) {
+    fun startGame(onTimeUp: () -> Unit) {
+        if (gameState.isGameActive) return // Don't restart if already active
+
+        gameState = gameState.copy(isGameActive = true)
+
+        viewModelScope.launch {
+            gameState = gameState.copy(isCountdownVisible = true, countdownValue = 3)
+            delay(1000)
+            gameState = gameState.copy(countdownValue = 2)
+            delay(1000)
+            gameState = gameState.copy(countdownValue = 1)
+            delay(1000)
+
+            gameState = gameState.copy(isCountdownVisible = false)
+            getNextWord()
+            startMainTimer(onTimeUp)
+        }
+    }
+
+    private fun startMainTimer(onTimeUp: () -> Unit) {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             while (gameState.timeLeft > 0) {
