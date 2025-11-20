@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.charades.R
 import com.example.charades.sensors.rememberAccelerometer
+import com.example.charades.sensors.rememberGyroscope
 import java.util.Locale
 
 @Composable
@@ -43,16 +44,19 @@ fun WordView(
     onBack: () -> Unit
 ) {
     val tilt = rememberAccelerometer()
+    val gyroscope = rememberGyroscope()
     var hasTriggered by remember(word) { mutableStateOf(false) }
 
-    LaunchedEffect(tilt.y) {
+    LaunchedEffect(tilt.z, gyroscope.y) {
         if (!hasTriggered) {
             when {
-                tilt.z > 7.0f -> {
+                // Skip: Tilted up OR rotating up
+                tilt.z > 7.0f && gyroscope.y < -3.0f -> {
                     hasTriggered = true
                     onSkip()
                 }
-                tilt.z < -7.0f -> {
+                // Correct: Tilted down OR rotating down
+                tilt.z < -7.0f && gyroscope.y > 3.0f -> {
                     hasTriggered = true
                     onCorrect()
                 }

@@ -1,5 +1,6 @@
 package com.example.charades.ui
 
+import android.media.MediaPlayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,15 +12,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.charades.R
+import kotlinx.coroutines.delay
 
 @Composable
 fun SkipView() {
+    val mContext = LocalContext.current
+    val mMediaPlayer = MediaPlayer.create(mContext, R.raw.skip)
+    mMediaPlayer.start()
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -46,4 +53,14 @@ fun SkipView() {
             )
         }
     }
+}
+
+@Preview(
+    name = "Horizontal Preview",
+    widthDp = 800, // Tipinis horizontalus plotis
+    heightDp = 360 // Tipinis horizontalus aukštis
+)
+@Composable
+fun SkipViewPreview(){
+    SkipView()
 }
