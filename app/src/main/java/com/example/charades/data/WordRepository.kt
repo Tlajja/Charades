@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 enum class Category(val fileName: String, val displayName: String) {
     ANIMALS("animals.json", "Gyvūnai"),
     SPORTS("sports.json", "Sportas"),
-    FOOD("food.json", "Maistas"),
+    FOOD("foods.json", "Maistas"),
     MUSIC("music.json", "Muzika"),
     PEOPLE("people.json", "Žmonės")
 }

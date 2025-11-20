@@ -52,13 +52,13 @@ fun WordView(
         LaunchedEffect(tilt.z, gyroscope.y) {
             if (!hasTriggered) {
                 when {
-                    tilt.z > 7.0f || gyroscope.y < -4.0f -> {
-                        hasTriggered = true
-                        onSkip()
-                    }
-                    tilt.z < -7.0f || gyroscope.y > 4.0f -> {
+                    gyroscope.y < -5.0f -> {
                         hasTriggered = true
                         onCorrect()
+                    }
+                    gyroscope.y > 5.0f -> {
+                        hasTriggered = true
+                        onSkip()
                     }
                 }
             }
@@ -132,7 +132,7 @@ fun WordView(
 
         if (!isCountdownVisible) {
             Text(
-                text = timeLeft.toString(),
+                text = if (timeLeft == 2147483647) "∞" else timeLeft.toString(),
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,

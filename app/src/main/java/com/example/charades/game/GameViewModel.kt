@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.charades.data.Category
 import com.example.charades.data.WordRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,7 +25,26 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
     var gameState by mutableStateOf(GameState())
         private set
 
+    var timerSetting by mutableStateOf(60)
+        private set
+
+    var selectedCategory by mutableStateOf<Category?>(null)
+        private set
+
     private var timerJob: Job? = null
+
+    fun setTimer(seconds: Int) {
+        timerSetting = seconds
+    }
+
+    fun setCategory(category: Category?) {
+        selectedCategory = category
+    }
+
+    fun prepareNewGame() {
+        timerJob?.cancel()
+        gameState = GameState(timeLeft = if (timerSetting == 0) Int.MAX_VALUE else timerSetting)
+    }
 
     fun startGame(onTimeUp: () -> Unit) {
         if (gameState.isGameActive) return // Don't restart if already active
@@ -41,7 +61,9 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
 
             gameState = gameState.copy(isCountdownVisible = false)
             getNextWord()
-            startMainTimer(onTimeUp)
+            if (timerSetting > 0) {
+                startMainTimer(onTimeUp)
+            }
         }
     }
 
@@ -57,14 +79,19 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
     }
 
     fun getNextWord() {
-        val allWords = repository.loadAllWords()
+        val allWords = if (selectedCategory != null) {
+            repository.loadWordsFromCategory(selectedCategory!!)
+        } else {
+            repository.loadAllWords()
+        }
+
         val availableWords = allWords.filterNot { it in gameState.usedWords }
 
         val nextWord = if (availableWords.isNotEmpty()) {
             availableWords.random()
         } else {
             gameState = gameState.copy(usedWords = emptySet())
-            allWords.random()
+            allWords.randomOrNull() ?: "ERROR"
         }
 
         gameState = gameState.copy(

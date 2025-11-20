@@ -19,6 +19,7 @@ import com.example.charades.data.WordRepository
 import com.example.charades.game.GameViewModel
 import com.example.charades.ui.CorrectView
 import com.example.charades.ui.GameResultsView
+import com.example.charades.ui.GameSettingsView
 import com.example.charades.ui.GameStartScreen
 import com.example.charades.ui.SkipView
 import com.example.charades.ui.WordView
@@ -41,18 +42,32 @@ fun CharadesNavigation() {
     ) {
         composable("start") {
             GameStartScreen(
+                onStartClick = { navController.navigate("settings") }
+            )
+        }
+
+        composable("settings") {
+            GameSettingsView(
+                timerValue = viewModel.timerSetting,
+                selectedCategory = viewModel.selectedCategory,
+                onTimerChange = { viewModel.setTimer(it) },
+                onCategoryChange = { viewModel.setCategory(it) },
                 onStartClick = {
-                    viewModel.resetGame()
+                    viewModel.prepareNewGame()
                     navController.navigate("word")
+                },
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }
 
         composable("word") {
-            // This effect starts the game (countdown + timer)
             LaunchedEffect(Unit) {
                 viewModel.startGame {
-                    navController.navigate("game_over") { popUpTo("start") }
+                    navController.navigate("game_over") {
+                        popUpTo("start") { inclusive = false }
+                    }
                 }
             }
 
@@ -79,7 +94,9 @@ fun CharadesNavigation() {
             LaunchedEffect(Unit) {
                 delay(1000)
                 viewModel.getNextWord()
-                navController.navigate("word") { popUpTo("word") { inclusive = true } }
+                navController.navigate("word") {
+                    popUpTo("word") { inclusive = true }
+                }
             }
         }
 
@@ -88,7 +105,9 @@ fun CharadesNavigation() {
             LaunchedEffect(Unit) {
                 delay(1000)
                 viewModel.getNextWord()
-                navController.navigate("word") { popUpTo("word") { inclusive = true } }
+                navController.navigate("word") {
+                    popUpTo("word") { inclusive = true }
+                }
             }
         }
 
@@ -96,8 +115,10 @@ fun CharadesNavigation() {
             GameResultsView(
                 points = viewModel.gameState.points,
                 onPlayAgain = {
-                    viewModel.resetGame()
-                    navController.navigate("word") { popUpTo("start") }
+                    viewModel.prepareNewGame()
+                    navController.navigate("word") {
+                        popUpTo("start") { inclusive = false }
+                    }
                 },
                 onGoToStart = {
                     navController.popBackStack("start", inclusive = false)
@@ -107,11 +128,10 @@ fun CharadesNavigation() {
     }
 }
 
-
 @Composable
 private fun ManageSystemUi(route: String?) {
+    val isGameScreen = route in listOf("start", "settings", "word", "correct", "skip", "game_over")
     val context = LocalContext.current
-    val isGameScreen = route in listOf("word", "correct", "skip", "game_over")
 
     DisposableEffect(isGameScreen) {
         val activity = context as? Activity ?: return@DisposableEffect onDispose {}
@@ -119,19 +139,18 @@ private fun ManageSystemUi(route: String?) {
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
         if (isGameScreen) {
-            val originalOrientation = activity.requestedOrientation
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             insetsController.hide(WindowInsetsCompat.Type.systemBars())
             insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-
-            onDispose {
-                activity.requestedOrientation = originalOrientation
-                insetsController.show(WindowInsetsCompat.Type.systemBars())
-            }
         } else {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             insetsController.show(WindowInsetsCompat.Type.systemBars())
-            onDispose {}
+        }
+
+        onDispose {
+            if (route == "start") {
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            }
         }
     }
 }
