@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -32,6 +33,17 @@ fun CharadesNavigation(inAppForeground: Boolean) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     ManageSystemUi(route = navBackStackEntry?.destination?.route)
+
+    val gameHasEnded by viewModel.gameEnded.collectAsState()
+
+    LaunchedEffect(gameHasEnded) {
+        if (gameHasEnded) {
+            navController.navigate("game_over") {
+                popUpTo("start") { inclusive = false }
+            }
+            viewModel.consumeGameEndEvent()
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -76,12 +88,7 @@ fun CharadesNavigation(inAppForeground: Boolean) {
 
         composable("word") {
             LaunchedEffect(Unit) {
-                viewModel.startGame {
-                    viewModel.saveGameResult()
-                    navController.navigate("game_over") {
-                        popUpTo("start") { inclusive = false }
-                    }
-                }
+                viewModel.startGame()
             }
 
             WordView(
@@ -147,25 +154,27 @@ fun CharadesNavigation(inAppForeground: Boolean) {
 
 @Composable
 private fun ManageSystemUi(route: String?) {
-    val isGameScreen = route in listOf("start", "settings", "statistics", "word", "correct", "skip", "game_over")
+    val isLandscapeOnly = route in listOf("word", "correct", "skip", "game_over", "player_transition", "multiplayer_results")
     val context = LocalContext.current
 
-    DisposableEffect(isGameScreen) {
+    DisposableEffect(route) {
         val activity = context as? Activity ?: return@DisposableEffect onDispose {}
         val window = activity.window
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
+        // Always hide system bars for all game screens
         insetsController.hide(WindowInsetsCompat.Type.systemBars())
         insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
-        if (isGameScreen) {
+        // Only lock to landscape for gameplay screens
+        if (isLandscapeOnly) {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         } else {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
 
         onDispose {
-            if (isGameScreen) {
+            if (isLandscapeOnly) {
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
         }

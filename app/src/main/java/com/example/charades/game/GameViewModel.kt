@@ -11,6 +11,8 @@ import com.example.charades.data.StatsRepository
 import com.example.charades.data.WordRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class GameState(
@@ -29,6 +31,13 @@ class GameViewModel(
     private val repository: WordRepository,
     private val statsRepository: StatsRepository
 ) : ViewModel() {
+
+    private val _gameEnded = MutableStateFlow(false)
+    val gameEnded = _gameEnded.asStateFlow()
+
+    fun consumeGameEndEvent() {
+        _gameEnded.value = false
+    }
 
     fun setVibrationEnabled(enabled: Boolean) {
         gameState = gameState.copy(vibrationEnabled = enabled)
@@ -49,8 +58,6 @@ class GameViewModel(
 
     private var timerJob: Job? = null
 
-    private var onTimeUpCallback: (() -> Unit)? = null
-
     fun setTimer(seconds: Int) {
         timerSetting = seconds
     }
@@ -68,10 +75,9 @@ class GameViewModel(
         )
     }
 
-    fun startGame(onTimeUp: () -> Unit) {
+    fun startGame() {
         if (gameState.isGameActive) return
 
-        onTimeUpCallback = onTimeUp
         gameState = gameState.copy(isGameActive = true)
 
         viewModelScope.launch {
@@ -93,11 +99,14 @@ class GameViewModel(
     private fun startMainTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            while (gameState.timeLeft > 0) {
+            var time = gameState.timeLeft
+            while (time > 0) {
                 delay(1000)
-                gameState = gameState.copy(timeLeft = gameState.timeLeft - 1)
+                time--
+                gameState = gameState.copy(timeLeft = time)
             }
-            onTimeUpCallback?.invoke()
+            saveGameResult()
+            _gameEnded.value = true
         }
     }
 
