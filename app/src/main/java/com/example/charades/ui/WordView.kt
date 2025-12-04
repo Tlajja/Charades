@@ -1,5 +1,7 @@
 package com.example.charades.ui
 
+import android.os.Build
+import android.os.VibratorManager
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -33,6 +35,9 @@ import com.example.charades.R
 import com.example.charades.sensors.rememberAccelerometer
 import com.example.charades.sensors.rememberGyroscope
 import java.util.Locale
+import android.os.VibrationEffect
+import android.os.Vibrator
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun WordView(
@@ -44,6 +49,47 @@ fun WordView(
     onSkip: () -> Unit,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    val vibrator = remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vm = context.getSystemService(VibratorManager::class.java)
+            vm.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Vibrator::class.java)
+        }
+    }
+
+    fun vibrateCorrect() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator?.vibrate(
+                VibrationEffect.createOneShot(
+                    80,
+                    255
+                )
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator?.vibrate(80)
+        }
+    }
+
+    fun vibrateSkip() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator?.vibrate(
+                VibrationEffect.createWaveform(
+                    longArrayOf(0, 90, 40, 120),
+                    -1
+                )
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator?.vibrate(60)
+        }
+    }
+
+
     val tilt = rememberAccelerometer()
     val gyroscope = rememberGyroscope()
     var hasTriggered by remember(word) { mutableStateOf(false) }
@@ -54,10 +100,12 @@ fun WordView(
                 when {
                     gyroscope.y < -5.0f -> {
                         hasTriggered = true
+                        vibrateCorrect()
                         onCorrect()
                     }
                     gyroscope.y > 5.0f -> {
                         hasTriggered = true
+                        vibrateSkip()
                         onSkip()
                     }
                 }

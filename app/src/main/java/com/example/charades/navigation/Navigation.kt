@@ -57,7 +57,7 @@ fun CharadesNavigation() {
                     navController.navigate("word")
                 },
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.popBackStack("start", inclusive = false)
                 }
             )
         }
@@ -138,17 +138,18 @@ private fun ManageSystemUi(route: String?) {
         val window = activity.window
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
+        insetsController.hide(WindowInsetsCompat.Type.systemBars())
+        insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
         if (isGameScreen) {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            insetsController.hide(WindowInsetsCompat.Type.systemBars())
-            insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         } else {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            insetsController.show(WindowInsetsCompat.Type.systemBars())
         }
 
         onDispose {
-            if (route == "start") {
+            // Revert to unspecified orientation when leaving a game screen
+            if (isGameScreen) {
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
         }
