@@ -18,10 +18,21 @@ data class GameState(
     val timeLeft: Int = 60,
     val isGameActive: Boolean = false,
     val isCountdownVisible: Boolean = false,
-    val countdownValue: Int = 3
+    val countdownValue: Int = 3,
+    val vibrationEnabled: Boolean = true,
+    val soundEnabled: Boolean = true
 )
 
 class GameViewModel(private val repository: WordRepository) : ViewModel() {
+
+    fun setVibrationEnabled(enabled: Boolean) {
+        gameState = gameState.copy(vibrationEnabled = enabled)
+    }
+
+    fun setSoundEnabled(enabled: Boolean) {
+        gameState = gameState.copy(soundEnabled = enabled)
+    }
+
     var gameState by mutableStateOf(GameState())
         private set
 
@@ -43,7 +54,11 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
 
     fun prepareNewGame() {
         timerJob?.cancel()
-        gameState = GameState(timeLeft = if (timerSetting == 0) Int.MAX_VALUE else timerSetting)
+        gameState = GameState(
+            timeLeft = if (timerSetting == 0) Int.MAX_VALUE else timerSetting,
+            vibrationEnabled = gameState.vibrationEnabled,
+            soundEnabled = gameState.soundEnabled
+        )
     }
 
     fun startGame(onTimeUp: () -> Unit) {
@@ -106,6 +121,9 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
 
     fun resetGame() {
         timerJob?.cancel()
-        gameState = GameState()
+        gameState = GameState(
+            vibrationEnabled = gameState.vibrationEnabled,
+            soundEnabled = gameState.soundEnabled
+        )
     }
 }

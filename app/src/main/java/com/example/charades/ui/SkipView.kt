@@ -23,19 +23,21 @@ import androidx.compose.ui.unit.sp
 import com.example.charades.R
 
 @Composable
-fun SkipView() {
+fun SkipView(soundEnabled: Boolean) {
     val mContext = LocalContext.current
 
     // Correctly handle MediaPlayer lifecycle
-    DisposableEffect(Unit) {
-        val mMediaPlayer = MediaPlayer.create(mContext, R.raw.skip)
-        mMediaPlayer.start()
+    if (soundEnabled) {
+        DisposableEffect(Unit) {
+            val mMediaPlayer = MediaPlayer.create(mContext, R.raw.skip)
+            mMediaPlayer.start()
 
-        onDispose {
-            if (mMediaPlayer.isPlaying) {
-                mMediaPlayer.stop()
+            onDispose {
+                if (mMediaPlayer.isPlaying) {
+                    mMediaPlayer.stop()
+                }
+                mMediaPlayer.release()
             }
-            mMediaPlayer.release()
         }
     }
 
@@ -74,5 +76,5 @@ fun SkipView() {
 )
 @Composable
 fun SkipViewPreview(){
-    SkipView()
+    SkipView(soundEnabled = true)
 }

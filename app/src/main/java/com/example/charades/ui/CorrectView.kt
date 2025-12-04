@@ -17,24 +17,27 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.charades.R
 
 @Composable
-fun CorrectView() {
+fun CorrectView(soundEnabled: Boolean) {
     val mContext = LocalContext.current
 
-    // Correctly handle MediaPlayer lifecycle
-    DisposableEffect(Unit) {
-        val mMediaPlayer = MediaPlayer.create(mContext, R.raw.correct)
-        mMediaPlayer.start()
+    if (soundEnabled) {
+        // Correctly handle MediaPlayer lifecycle
+        DisposableEffect(Unit) {
+            val mMediaPlayer = MediaPlayer.create(mContext, R.raw.correct)
+            mMediaPlayer.start()
 
-        onDispose {
-            if (mMediaPlayer.isPlaying) {
-                mMediaPlayer.stop()
+            onDispose {
+                if (mMediaPlayer.isPlaying) {
+                    mMediaPlayer.stop()
+                }
+                mMediaPlayer.release()
             }
-            mMediaPlayer.release()
         }
     }
 
@@ -69,4 +72,14 @@ fun CorrectView() {
             )
         }
     }
+}
+
+@Preview(
+    name = "Horizontal Preview",
+    widthDp = 800, // Tipinis horizontalus plotis
+    heightDp = 360 // Tipinis horizontalus aukštis
+)
+@Composable
+fun CorrectViewPreview(){
+    CorrectView(soundEnabled = true)
 }

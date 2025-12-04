@@ -45,6 +45,7 @@ fun WordView(
     timeLeft: Int,
     isCountdownVisible: Boolean,
     countdownValue: Int,
+    vibrationEnabled: Boolean,
     onCorrect: () -> Unit,
     onSkip: () -> Unit,
     onBack: () -> Unit
@@ -65,7 +66,7 @@ fun WordView(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             vibrator?.vibrate(
                 VibrationEffect.createOneShot(
-                    80,
+                    150,
                     255
                 )
             )
@@ -100,12 +101,12 @@ fun WordView(
                 when {
                     gyroscope.y < -5.0f -> {
                         hasTriggered = true
-                        vibrateCorrect()
+                        if (vibrationEnabled) vibrateCorrect()
                         onCorrect()
                     }
                     gyroscope.y > 5.0f -> {
                         hasTriggered = true
-                        vibrateSkip()
+                        if (vibrationEnabled) vibrateSkip()
                         onSkip()
                     }
                 }
@@ -200,22 +201,10 @@ fun WordViewPreviewCountdown() {
         timeLeft = 60,
         isCountdownVisible = true,
         countdownValue = 3,
+        vibrationEnabled = true,
         onCorrect = {},
         onSkip = {},
         onBack = {}
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun WordViewPreviewWord() {
-    WordView(
-        word = "Ilgas Dvigubas Žodis Kuris Netelpa",
-        timeLeft = 55,
-        isCountdownVisible = false,
-        countdownValue = 0,
-        onCorrect = {},
-        onSkip = {},
-        onBack = {}
-    )
-}

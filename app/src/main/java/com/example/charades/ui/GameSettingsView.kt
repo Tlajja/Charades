@@ -26,6 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import com.example.charades.R
 import com.example.charades.data.Category
 
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GameSettingsView(
@@ -49,6 +51,10 @@ fun GameSettingsView(
     selectedCategory: Category?,
     onTimerChange: (Int) -> Unit,
     onCategoryChange: (Category?) -> Unit,
+    soundEnabled: Boolean,
+    vibrationEnabled: Boolean,
+    onVibrationChange: (Boolean) -> Unit,
+    onSoundChange: (Boolean) -> Unit,
     onStartClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -175,6 +181,48 @@ fun GameSettingsView(
                 }
             }
 
+            // Vibration toggle
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    text = "Vibracija",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+                Spacer(modifier = Modifier.weight(1f))
+
+                Switch(
+                    checked = vibrationEnabled,
+                    onCheckedChange = { onVibrationChange(it) }
+                )
+            }
+
+            // Sound toggle
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    text = "Garsai",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+                Spacer(modifier = Modifier.weight(1f))
+
+                Switch(
+                    checked = soundEnabled,
+                    onCheckedChange = { onSoundChange(it) }
+                )
+            }
+
             Spacer(modifier = Modifier.height(48.dp))
 
             // Start Button
@@ -236,5 +284,16 @@ fun CategoryButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
 @Preview
 @Composable
 fun GameSettingsPreview(){
-    GameSettingsView(60, null, {}, {}, {}, {})
+    GameSettingsView(
+        timerValue = 60,
+        selectedCategory = null,
+        onTimerChange = {},
+        onCategoryChange = {},
+        soundEnabled = true,
+        vibrationEnabled = true,
+        onVibrationChange = {},
+        onSoundChange = {},
+        onStartClick = {},
+        onBackClick = {}
+    )
 }

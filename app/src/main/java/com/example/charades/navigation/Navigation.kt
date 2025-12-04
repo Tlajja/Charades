@@ -50,17 +50,20 @@ fun CharadesNavigation() {
             GameSettingsView(
                 timerValue = viewModel.timerSetting,
                 selectedCategory = viewModel.selectedCategory,
+                vibrationEnabled = viewModel.gameState.vibrationEnabled,
+                soundEnabled = viewModel.gameState.soundEnabled,
                 onTimerChange = { viewModel.setTimer(it) },
                 onCategoryChange = { viewModel.setCategory(it) },
+                onVibrationChange = { viewModel.setVibrationEnabled(it) },
+                onSoundChange = { viewModel.setSoundEnabled(it) },
                 onStartClick = {
                     viewModel.prepareNewGame()
                     navController.navigate("word")
                 },
-                onBackClick = {
-                    navController.popBackStack("start", inclusive = false)
-                }
+                onBackClick = { navController.navigateUp() }
             )
         }
+
 
         composable("word") {
             LaunchedEffect(Unit) {
@@ -76,6 +79,7 @@ fun CharadesNavigation() {
                 timeLeft = viewModel.gameState.timeLeft,
                 isCountdownVisible = viewModel.gameState.isCountdownVisible,
                 countdownValue = viewModel.gameState.countdownValue,
+                vibrationEnabled = viewModel.gameState.vibrationEnabled,
                 onCorrect = {
                     viewModel.markCorrect()
                     navController.navigate("correct")
@@ -90,7 +94,7 @@ fun CharadesNavigation() {
         }
 
         composable("correct") {
-            CorrectView()
+            CorrectView(soundEnabled = viewModel.gameState.soundEnabled)
             LaunchedEffect(Unit) {
                 delay(1000)
                 viewModel.getNextWord()
@@ -101,7 +105,7 @@ fun CharadesNavigation() {
         }
 
         composable("skip") {
-            SkipView()
+            SkipView(soundEnabled = viewModel.gameState.soundEnabled)
             LaunchedEffect(Unit) {
                 delay(1000)
                 viewModel.getNextWord()
