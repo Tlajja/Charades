@@ -15,23 +15,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.charades.data.StatsRepository
 import com.example.charades.data.WordRepository
 import com.example.charades.game.GameViewModel
-import com.example.charades.ui.CorrectView
-import com.example.charades.ui.GameResultsView
-import com.example.charades.ui.GameSettingsView
-import com.example.charades.ui.GameStartScreen
-import com.example.charades.ui.SkipView
-import com.example.charades.ui.WordView
+import com.example.charades.ui.*
 import kotlinx.coroutines.delay
 
 @Composable
-fun CharadesNavigation() {
+fun CharadesNavigation(inAppForeground: Boolean) {
     val navController = rememberNavController()
     val context = LocalContext.current
 
     val repository = remember { WordRepository(context) }
-    val viewModel = remember { GameViewModel(repository) }
+    val statsRepository = remember { StatsRepository(context) }
+    val viewModel = remember { GameViewModel(repository, statsRepository) }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     ManageSystemUi(route = navBackStackEntry?.destination?.route)
@@ -42,7 +39,20 @@ fun CharadesNavigation() {
     ) {
         composable("start") {
             GameStartScreen(
-                onStartClick = { navController.navigate("settings") }
+                onStartClick = { navController.navigate("settings") },
+                onStatisticsClick = { navController.navigate("statistics") }
+            )
+        }
+
+        composable("statistics") {
+            val stats = remember { statsRepository.loadStatistics() }
+            StatisticsView(
+                statistics = stats,
+                onBackClick = { navController.navigateUp() },
+                onClearStats = {
+                    statsRepository.clearStatistics()
+                    navController.navigateUp()
+                }
             )
         }
 
@@ -64,10 +74,10 @@ fun CharadesNavigation() {
             )
         }
 
-
         composable("word") {
             LaunchedEffect(Unit) {
                 viewModel.startGame {
+                    viewModel.saveGameResult()
                     navController.navigate("game_over") {
                         popUpTo("start") { inclusive = false }
                     }
@@ -89,7 +99,10 @@ fun CharadesNavigation() {
                 },
                 onBack = {
                     navController.popBackStack("start", inclusive = false)
-                }
+                },
+                onPauseTimer = { viewModel.pauseTimer() },
+                onResumeTimer = { viewModel.resumeTimer() },
+                inAppForeground = inAppForeground
             )
         }
 
@@ -134,7 +147,7 @@ fun CharadesNavigation() {
 
 @Composable
 private fun ManageSystemUi(route: String?) {
-    val isGameScreen = route in listOf("start", "settings", "word", "correct", "skip", "game_over")
+    val isGameScreen = route in listOf("start", "settings", "statistics", "word", "correct", "skip", "game_over")
     val context = LocalContext.current
 
     DisposableEffect(isGameScreen) {
@@ -152,7 +165,6 @@ private fun ManageSystemUi(route: String?) {
         }
 
         onDispose {
-            // Revert to unspecified orientation when leaving a game screen
             if (isGameScreen) {
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }

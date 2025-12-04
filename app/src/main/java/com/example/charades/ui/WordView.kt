@@ -1,6 +1,8 @@
 package com.example.charades.ui
 
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -24,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -32,12 +35,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.charades.R
-import com.example.charades.sensors.rememberAccelerometer
 import com.example.charades.sensors.rememberGyroscope
 import java.util.Locale
-import android.os.VibrationEffect
-import android.os.Vibrator
-import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun WordView(
@@ -48,11 +47,23 @@ fun WordView(
     vibrationEnabled: Boolean,
     onCorrect: () -> Unit,
     onSkip: () -> Unit,
-    onBack: () -> Unit
-) {
+    onBack: () -> Unit,
+    onPauseTimer: () -> Unit,
+    onResumeTimer: () -> Unit,
+    inAppForeground: Boolean
+)
+ {
     val context = LocalContext.current
 
-    val vibrator = remember {
+    LaunchedEffect(inAppForeground) {
+        if (inAppForeground) {
+            onResumeTimer()
+        } else {
+            onPauseTimer()
+        }
+    }
+
+     val vibrator = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vm = context.getSystemService(VibratorManager::class.java)
             vm.defaultVibrator
@@ -90,29 +101,27 @@ fun WordView(
         }
     }
 
+     val gyroscope = rememberGyroscope(inAppForeground)
+     var hasTriggered by remember(word) { mutableStateOf(false) }
 
-    val tilt = rememberAccelerometer()
-    val gyroscope = rememberGyroscope()
-    var hasTriggered by remember(word) { mutableStateOf(false) }
+     if (!isCountdownVisible) {
+         LaunchedEffect(gyroscope.y) {
+             if (hasTriggered) return@LaunchedEffect
 
-    if (!isCountdownVisible) {
-        LaunchedEffect(tilt.z, gyroscope.y) {
-            if (!hasTriggered) {
-                when {
-                    gyroscope.y < -5.0f -> {
-                        hasTriggered = true
-                        if (vibrationEnabled) vibrateCorrect()
-                        onCorrect()
-                    }
-                    gyroscope.y > 5.0f -> {
-                        hasTriggered = true
-                        if (vibrationEnabled) vibrateSkip()
-                        onSkip()
-                    }
-                }
-            }
-        }
-    }
+             when {
+                 gyroscope.y < -5f -> {
+                     hasTriggered = true
+                     if(vibrationEnabled) vibrateCorrect()
+                     onCorrect()
+                 }
+                 gyroscope.y > 5f -> {
+                     hasTriggered = true
+                     if(vibrationEnabled) vibrateSkip()
+                     onSkip()
+                 }
+             }
+         }
+     }
 
     Box(
         modifier = Modifier
@@ -204,7 +213,27 @@ fun WordViewPreviewCountdown() {
         vibrationEnabled = true,
         onCorrect = {},
         onSkip = {},
-        onBack = {}
+        onBack = {},
+        onPauseTimer = {},
+        onResumeTimer = {},
+        inAppForeground = true
     )
 }
 
+@Preview(showBackground = true)
+@Composable
+fun WordViewPreviewWord() {
+    WordView(
+        word = "Ilgas Dvigubas Žodis Kuris Netelpa",
+        timeLeft = 55,
+        isCountdownVisible = false,
+        countdownValue = 0,
+        vibrationEnabled = true,
+        onCorrect = {},
+        onSkip = {},
+        onBack = {},
+        onPauseTimer = {},
+        onResumeTimer = {},
+        inAppForeground = true
+    )
+}

@@ -43,7 +43,6 @@ fun GameResultsView(
 ) {
     val mContext = LocalContext.current
 
-    // Saugus MediaPlayer naudojimas
     DisposableEffect(Unit) {
         val mMediaPlayer = MediaPlayer.create(mContext, R.raw.gameend)
         mMediaPlayer?.start()
@@ -63,7 +62,6 @@ fun GameResultsView(
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        // Fonas kaip kituose ekranuose
         Image(
             painter = painterResource(id = R.drawable.bluebg),
             contentDescription = null,
@@ -84,7 +82,6 @@ fun GameResultsView(
                 )
         )
 
-        // Kompaktiška kortelė
         Box(
             modifier = Modifier
                 .padding(16.dp)
@@ -127,7 +124,6 @@ fun GameResultsView(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Du mygtukai vienoje eilėje – tilps horizontaliai
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()

@@ -20,11 +20,11 @@ data class GyroscopeData(
 )
 
 @Composable
-fun rememberGyroscope(): GyroscopeData {
+fun rememberGyroscope(inAppForeground: Boolean): GyroscopeData {
     val context = LocalContext.current
     var gyroscopeData by remember { mutableStateOf(GyroscopeData()) }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(inAppForeground) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
 
@@ -45,13 +45,13 @@ fun rememberGyroscope(): GyroscopeData {
                 // Not used
             }
         }
-
-        sensorManager.registerListener(
-            sensorEventListener,
-            gyroscope,
-            SensorManager.SENSOR_DELAY_UI
-        )
-
+        if (inAppForeground) {
+            sensorManager.registerListener(
+                sensorEventListener,
+                gyroscope,
+                SensorManager.SENSOR_DELAY_UI
+            )
+        }
         onDispose {
             sensorManager.unregisterListener(sensorEventListener)
         }

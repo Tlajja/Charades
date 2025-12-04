@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.charades.data.Category
+import com.example.charades.data.GameResult
+import com.example.charades.data.StatsRepository
 import com.example.charades.data.WordRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -23,7 +25,10 @@ data class GameState(
     val soundEnabled: Boolean = true
 )
 
-class GameViewModel(private val repository: WordRepository) : ViewModel() {
+class GameViewModel(
+    private val repository: WordRepository,
+    private val statsRepository: StatsRepository
+) : ViewModel() {
 
     fun setVibrationEnabled(enabled: Boolean) {
         gameState = gameState.copy(vibrationEnabled = enabled)
@@ -44,6 +49,8 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
 
     private var timerJob: Job? = null
 
+    private var onTimeUpCallback: (() -> Unit)? = null
+
     fun setTimer(seconds: Int) {
         timerSetting = seconds
     }
@@ -62,8 +69,9 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
     }
 
     fun startGame(onTimeUp: () -> Unit) {
-        if (gameState.isGameActive) return // Don't restart if already active
+        if (gameState.isGameActive) return
 
+        onTimeUpCallback = onTimeUp
         gameState = gameState.copy(isGameActive = true)
 
         viewModelScope.launch {
@@ -77,20 +85,35 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
             gameState = gameState.copy(isCountdownVisible = false)
             getNextWord()
             if (timerSetting > 0) {
-                startMainTimer(onTimeUp)
+                startMainTimer()
             }
         }
     }
 
-    private fun startMainTimer(onTimeUp: () -> Unit) {
+    private fun startMainTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             while (gameState.timeLeft > 0) {
                 delay(1000)
                 gameState = gameState.copy(timeLeft = gameState.timeLeft - 1)
             }
-            onTimeUp()
+            onTimeUpCallback?.invoke()
         }
+    }
+
+    fun pauseTimer() {
+        timerJob?.cancel()
+        timerJob = null
+    }
+
+    fun resumeTimer() {
+        if (timerJob != null) return
+        if (!gameState.isGameActive) return
+        if (gameState.isCountdownVisible) return
+        if (timerSetting == 0) return
+        if (gameState.timeLeft <= 0) return
+
+        startMainTimer()
     }
 
     fun getNextWord() {
@@ -117,6 +140,15 @@ class GameViewModel(private val repository: WordRepository) : ViewModel() {
 
     fun markCorrect() {
         gameState = gameState.copy(points = gameState.points + 1)
+    }
+
+    fun saveGameResult() {
+        val result = GameResult(
+            points = gameState.points,
+            category = selectedCategory?.displayName,
+            timerSeconds = timerSetting
+        )
+        statsRepository.saveGameResult(result)
     }
 
     fun resetGame() {
