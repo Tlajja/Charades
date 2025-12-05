@@ -171,7 +171,7 @@ fun StatisticsView(
             },
             text = {
                 Text(
-                    text = "Ar tikrai norite ištrinti visus žaidimų rezultatus? Šio veiksmo negalima atšaukti.",
+                    text = "Ar tikrai norite ištrinti visus žaidimų rezultatus? \n\nŠio veiksmo negalima atšaukti.",
                     fontFamily = FontFamily.Monospace
                 )
             },
