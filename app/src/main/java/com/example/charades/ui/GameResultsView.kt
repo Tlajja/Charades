@@ -225,18 +225,3 @@ fun GameResultsView(
         }
     }
 }
-
-@Preview
-@Composable
-fun GameResultsViewPreview() {
-    GameResultsView(
-        points = 12,
-        onPlayAgain = {},
-        onGoToStart = {},
-        category = "Gyvūnai",
-        timerSettings = 60,
-        vibrationEnabled = true,
-        soundEnabled = true,
-        soundManager = SoundManager(LocalContext.current)
-    )
-}

@@ -174,7 +174,23 @@ fun MultiplayerResultsView(
                         fontFamily = FontFamily.Monospace
                     )
                     Text(
-                        text = "${winner.name} — ${winner.score} taškų",
+                        text = "${winner.name}",
+                        fontSize = 28.sp,
+                        color = Color(0xFF4CAF50),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "Surinkti taškai",
+                        fontSize = 28.sp,
+                        color = Color(0xFF4CAF50),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "${winner.score}",
                         fontSize = 28.sp,
                         color = Color(0xFF4CAF50),
                         fontWeight = FontWeight.Bold,
@@ -336,26 +352,4 @@ private fun PlayerResultRow(
             )
         }
     }
-}
-
-@Preview
-@Composable
-fun MultiplayerResultsPreview() {
-    MultiplayerResultsView(
-        players = listOf(
-            Player("1", "Jonas", 32),
-            Player("2", "Petras", 24),
-            Player("3", "Antanas", 18),
-            Player("4", "Asta", 10),
-            Player("5", "Eglė", 5),
-            Player("6", "Liepa", 50)
-        ),
-        onBackToMenu = {},
-        onPlayAgain = {},
-        category = "Gyvūnai",
-        timerSettings = 60,
-        vibrationEnabled = true,
-        soundEnabled = true,
-        soundManager = SoundManager(LocalContext.current)
-    )
 }

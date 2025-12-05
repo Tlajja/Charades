@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,9 +57,31 @@ fun WordView(
     onPauseTimer: () -> Unit,
     onResumeTimer: () -> Unit,
     inAppForeground: Boolean
-)
-{
+) {
     val context = LocalContext.current
+    var showExitDialog by remember { mutableStateOf(false) }
+
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text("Išeiti iš žaidimo?") },
+            text = { Text("Ar tikrai norite išeiti iš žaidimo ir nutraukti dabartinę seisiją?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showExitDialog = false
+                    onBack()
+                }) {
+                    Text("Išeiti")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("Atšaukti")
+                }
+            }
+        )
+    }
+
 
     LaunchedEffect(inAppForeground) {
         if (inAppForeground) {
@@ -114,13 +139,14 @@ fun WordView(
             when {
                 gyroscope.y < -5f -> {
                     hasTriggered = true
-                    if(vibrationEnabled) vibrateCorrect()
+                    if (vibrationEnabled) vibrateCorrect()
                     if (soundEnabled) soundManager.playCorrect()
                     onCorrect()
                 }
+
                 gyroscope.y > 5f -> {
                     hasTriggered = true
-                    if(vibrationEnabled) vibrateSkip()
+                    if (vibrationEnabled) vibrateSkip()
                     if (soundEnabled) soundManager.playSkip()
                     onSkip()
                 }
@@ -141,7 +167,7 @@ fun WordView(
         )
 
         IconButton(
-            onClick = onBack,
+            onClick = { showExitDialog = true },
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp)
