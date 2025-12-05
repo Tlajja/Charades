@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.charades.audio.rememberSoundManager
+import com.example.charades.data.CustomCategoryRepository
 import com.example.charades.data.StatsRepository
 import com.example.charades.data.WordRepository
 import com.example.charades.game.GameViewModel
@@ -34,12 +35,17 @@ fun CharadesNavigation(inAppForeground: Boolean) {
 
     val wordRepository = remember { WordRepository(context) }
     val statsRepository = remember { StatsRepository(context) }
+    val customCategoryRepository = remember { CustomCategoryRepository(context) }
 
     val viewModel: GameViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return GameViewModel(wordRepository, statsRepository) as T
+                return GameViewModel(
+                    wordRepository,
+                    statsRepository,
+                    customCategoryRepository
+                ) as T
             }
         }
     )

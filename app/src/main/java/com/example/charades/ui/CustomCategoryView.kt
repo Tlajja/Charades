@@ -199,7 +199,8 @@ fun CustomCategoryView(
                                 singleLine = true,
                                 modifier = Modifier.weight(1f),
                                 keyboardOptions = KeyboardOptions.Default.copy(
-                                    imeAction = ImeAction.Next,
+                                    imeAction =
+                                        if (currentWord.isEmpty()) ImeAction.Done else ImeAction.Next,
                                     keyboardType = KeyboardType.Text
                                 ),
                                 keyboardActions = KeyboardActions(
@@ -209,27 +210,12 @@ fun CustomCategoryView(
                                             words = words + cleaned
                                             currentWord = ""
                                         }
+                                    },
+                                    onDone = {
+                                        focusManager.clearFocus()
                                     }
                                 )
                             )
-
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(
-                                onClick = {
-                                    val cleaned = currentWord.trim()
-                                    if (cleaned.isNotEmpty() && !words.contains(cleaned)) {
-                                        words = words + cleaned
-                                        currentWord = ""
-                                    }
-                                    focusManager.clearFocus()
-                                },
-                                enabled = currentWord.trim().isNotEmpty()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Pridėti žodį"
-                                )
-                            }
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))

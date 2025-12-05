@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.charades.data.Category
+import com.example.charades.data.CustomCategoryRepository
 import com.example.charades.data.GameMode
 import com.example.charades.data.GameResult
 import com.example.charades.data.Player
@@ -31,7 +32,8 @@ data class GameState(
 
 class GameViewModel(
     private val repository: WordRepository,
-    private val statsRepository: StatsRepository
+    private val statsRepository: StatsRepository,
+    private val customCategoryRepository: CustomCategoryRepository
 ) : ViewModel() {
 
     private val _gameEnded = MutableStateFlow(false)
@@ -67,6 +69,7 @@ class GameViewModel(
 
     var gameMode by mutableStateOf(GameMode())
         private set
+
     var timerSetting by mutableStateOf(60)
         private set
 
@@ -81,19 +84,26 @@ class GameViewModel(
 
     private var timerJob: Job? = null
 
+    init {
+        customCategories = customCategoryRepository.loadCategories()
+    }
+
 
     fun addCustomCategory(category: Category.Custom) {
         customCategories = customCategories + category
+        customCategoryRepository.saveCategories(customCategories)
     }
 
     fun updateCustomCategory(old: Category.Custom, updated: Category.Custom) {
         customCategories = customCategories.map { if (it == old) updated else it }
         if (selectedCategory == old) selectedCategory = updated
+        customCategoryRepository.saveCategories(customCategories)
     }
 
     fun deleteCustomCategory(category: Category.Custom) {
         customCategories = customCategories.filterNot { it == category }
         if (selectedCategory == category) selectedCategory = null
+        customCategoryRepository.saveCategories(customCategories)
     }
 
 
