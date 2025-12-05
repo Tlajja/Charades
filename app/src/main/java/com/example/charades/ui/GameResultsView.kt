@@ -1,5 +1,9 @@
 package com.example.charades.ui
 
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,11 +21,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.charades.R
+import com.example.charades.audio.SoundManager
 
 @Composable
 fun GameResultsView(
@@ -36,8 +48,46 @@ fun GameResultsView(
     onPlayAgain: () -> Unit,
     onGoToStart: () -> Unit,
     category: String?,
-    timerSettings: Int
+    timerSettings: Int,
+    vibrationEnabled: Boolean,
+    soundEnabled: Boolean,
+    soundManager: SoundManager
 ) {
+    val context = LocalContext.current
+    val vibrator = remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vm = context.getSystemService(VibratorManager::class.java)
+            vm.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Vibrator::class.java)
+        }
+    }
+
+    var gameEndEffectTriggered by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        if (!gameEndEffectTriggered) {
+            if (vibrationEnabled) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    // A three-buzz pattern to signify the end of the game
+                    val timings = longArrayOf(0, 200, 100, 200, 100, 200)
+                    val amplitudes = intArrayOf(0, VibrationEffect.DEFAULT_AMPLITUDE, 0, VibrationEffect.DEFAULT_AMPLITUDE, 0, VibrationEffect.DEFAULT_AMPLITUDE)
+                    val effect = VibrationEffect.createWaveform(timings, amplitudes, -1)
+                    vibrator?.vibrate(effect)
+                } else {
+                    // Fallback for older APIs: A single, longer vibration
+                    @Suppress("DEPRECATION")
+                    vibrator?.vibrate(600) // Increased duration to feel more final
+                }
+            }
+            if (soundEnabled) {
+                soundManager.playGameEnd()
+            }
+            gameEndEffectTriggered = true
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -129,7 +179,7 @@ fun GameResultsView(
                         onClick = onPlayAgain,
                         modifier = Modifier
                             .weight(1f)
-                            .height(52.dp),
+                            .height(55.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF4CAF50),
                             contentColor = Color.White
@@ -152,7 +202,7 @@ fun GameResultsView(
                         onClick = onGoToStart,
                         modifier = Modifier
                             .weight(1f)
-                            .height(52.dp),
+                            .height(55.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF0B41BB),
                             contentColor = Color.White
@@ -184,6 +234,9 @@ fun GameResultsViewPreview() {
         onPlayAgain = {},
         onGoToStart = {},
         category = "Gyvūnai",
-        timerSettings = 60
+        timerSettings = 60,
+        vibrationEnabled = true,
+        soundEnabled = true,
+        soundManager = SoundManager(LocalContext.current)
     )
 }

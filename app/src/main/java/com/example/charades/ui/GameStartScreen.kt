@@ -148,8 +148,6 @@ fun GameStartScreen(
                     fontFamily = FontFamily.Monospace
                 )
             }
-
-
         }
     }
 
@@ -187,12 +185,13 @@ fun RulesDialog(onDismissRequest: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 260.dp)
+                    .heightIn(max = 320.dp)
                     .verticalScroll(scrollState)
             ) {
                 Text(
-                    text = "Prieš pradedant pasirink laikmatį ir kategoriją. " +
-                            "Jeigu laikmatis nustatytas į 0 – turėsite neribotą laiką (∞).",
+                    text = "Prieš pradedant pasirink laikmatį, kategoriją ir žaidimo režimą. " +
+                            "Jeigu laikmatis nustatytas į 0 – turėsite neribotą laiką (∞), " +
+                            "tad raundas nesibaigs nuo laiko.",
                     fontSize = 15.sp,
                     fontFamily = FontFamily.Monospace
                 )
@@ -204,20 +203,46 @@ fun RulesDialog(onDismissRequest: () -> Unit) {
                 )
 
                 Text(
+                    text = "Režimai:\n" +
+                            "• „Vienas žaidėjas“ – žaidžia vienas žmogus ir renka savo taškus.\n" +
+                            "• „Keli žaidėjai“ – įveskite kelis žaidėjus, kiekvienas paeiliui žaidžia savo raundą, " +
+                            "o pabaigoje rodoma bendra rezultatų lentelė.",
+                    fontSize = 15.sp,
+                    lineHeight = 18.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+
+                Text(
+                    text = "Jei įjungtas nustatymas „Nekartoti žodžių tarp žaidimų“, " +
+                            "programėlė stengsis nerodyti jau matytų žodžių, " +
+                            "kol bus panaudota kuo daugiau naujų. " +
+                            "Išjungus ir vėl įjungus šį nustatymą, matytų žodžių sąrašas bus atnaujintas.",
+                    fontSize = 15.sp,
+                    lineHeight = 18.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+
+                Text(
                     text =
                         "1) Laikyk telefoną horizontalioje padėtyje prie kaktos.\n" +
                                 "2) Kiti žmonės turi paaiškinti žodį jo nepasakydami.\n" +
                                 "3) Atspėjus žodį – palenk telefoną žemyn (✓ Teisingai).\n" +
-                                "4) Norint praleisti arba aišklinantiesiems suklydus – palenk telefoną aukštyn (✗ Praleisti).",
+                                "4) Norint praleisti arba aiškinantiesiems suklydus – palenk telefoną aukštyn (✗ Praleisti).",
                     fontSize = 15.sp,
                     lineHeight = 18.sp,
                     fontFamily = FontFamily.Monospace
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
-                    text = "💡 Susikurkite savo taisykles ir žaiskite taip, kaip jums smagiausia!",
+                    text = "Jeigu norite daugiau laisvės – susikurkite savo taisykles:",
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color(0xFFB0B0B0),
+                    lineHeight = 18.sp
+                )
+                Text(
+                    text = "💡 Galite keisti, kaip skaičiuojami taškai, ar leisti tik gestus, garsus, mimiką ir t.t.",
                     fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace,
                     color = Color(0xFFB0B0B0),

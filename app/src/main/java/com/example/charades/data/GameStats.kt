@@ -36,7 +36,8 @@ data class GameResult(
 
 @Serializable
 data class GameStatistics(
-    val games: List<GameResult> = emptyList()
+    val games: List<GameResult> = emptyList(),
+    val seenWords: Set<String> = emptySet()
 ) {
     fun getTotalGames(): Int = games.size
 

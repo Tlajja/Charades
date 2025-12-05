@@ -12,10 +12,11 @@ class StatsRepository(private val context: Context) {
     }
     private val statsFile = File(context.filesDir, "game_statistics.json")
 
-    fun saveGameResult(result: GameResult) {
+    fun saveGameResult(result: GameResult, usedWords: Set<String>) {
         val currentStats = loadStatistics()
         val updatedGames = currentStats.games + result
-        val updatedStats = GameStatistics(updatedGames)
+        val updatedSeenWords = currentStats.seenWords + usedWords
+        val updatedStats = GameStatistics(updatedGames, updatedSeenWords)
 
         try {
             val jsonString = json.encodeToString(updatedStats)
@@ -36,6 +37,17 @@ class StatsRepository(private val context: Context) {
         } catch (e: Exception) {
             e.printStackTrace()
             GameStatistics()
+        }
+    }
+    
+    fun clearSeenWords() {
+        val currentStats = loadStatistics()
+        val updatedStats = currentStats.copy(seenWords = emptySet())
+        try {
+            val jsonString = json.encodeToString(updatedStats)
+            statsFile.writeText(jsonString)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

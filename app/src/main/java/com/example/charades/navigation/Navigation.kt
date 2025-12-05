@@ -54,7 +54,6 @@ fun CharadesNavigation(inAppForeground: Boolean) {
 
     LaunchedEffect(gameHasEnded) {
         if (gameHasEnded) {
-            soundManager.playGameEnd()
             navController.navigate("game_over") {
                 popUpTo("start") { inclusive = false }
             }
@@ -64,7 +63,6 @@ fun CharadesNavigation(inAppForeground: Boolean) {
 
     LaunchedEffect(multiplayerGameHasEnded) {
         if (multiplayerGameHasEnded) {
-            soundManager.playGameEnd()
             navController.navigate("multiplayer_results") {
                 popUpTo("start") { inclusive = false }
             }
@@ -111,19 +109,34 @@ fun CharadesNavigation(inAppForeground: Boolean) {
             GameSettingsView(
                 timerValue = viewModel.timerSetting,
                 selectedCategory = viewModel.selectedCategory,
-                vibrationEnabled = viewModel.gameState.vibrationEnabled,
-                soundEnabled = viewModel.gameState.soundEnabled,
+                customCategories = viewModel.customCategories,
                 onTimerChange = { viewModel.setTimer(it) },
                 onCategoryChange = { viewModel.setCategory(it) },
+                onManageCustomCategoriesClick = { navController.navigate("custom_categories") },
+                soundEnabled = viewModel.gameState.soundEnabled,
+                vibrationEnabled = viewModel.gameState.vibrationEnabled,
                 onVibrationChange = { viewModel.setVibrationEnabled(it) },
                 onSoundChange = { viewModel.setSoundEnabled(it) },
+                dontRepeatWords = viewModel.dontRepeatWords,
+                onDontRepeatWordsChange = { viewModel.onDontRepeatWordsChanged(it) },
                 onStartClick = {
                     viewModel.setGameModeToSinglePlayer()
                     viewModel.prepareNewGame()
                     navController.navigate("word")
                 },
                 onBackClick = { navController.navigateUp() },
-                onSetPlayersClick = { navController.navigate("set_players")}
+                onSetPlayersClick = { navController.navigate("set_players") }
+            )
+        }
+
+
+        composable("custom_categories") {
+            CustomCategoryView(
+                categories = viewModel.customCategories,
+                onSaveNew = { viewModel.addCustomCategory(it) },
+                onUpdateCategory = { old, updated -> viewModel.updateCustomCategory(old, updated) },
+                onDeleteCategory = { toDelete -> viewModel.deleteCustomCategory(toDelete) },
+                onBackClick = { navController.navigateUp() }
             )
         }
 
@@ -206,7 +219,10 @@ fun CharadesNavigation(inAppForeground: Boolean) {
                     navController.popBackStack("start", inclusive = false)
                 },
                 category = viewModel.selectedCategory?.displayName,
-                timerSettings = viewModel.timerSetting
+                timerSettings = viewModel.timerSetting,
+                vibrationEnabled = viewModel.gameState.vibrationEnabled,
+                soundEnabled = viewModel.gameState.soundEnabled,
+                soundManager = soundManager
             )
         }
 
@@ -233,7 +249,10 @@ fun CharadesNavigation(inAppForeground: Boolean) {
                     navController.navigate("player_transition")
                 },
                 category = viewModel.selectedCategory?.displayName,
-                timerSettings = viewModel.timerSetting
+                timerSettings = viewModel.timerSetting,
+                vibrationEnabled = viewModel.gameState.vibrationEnabled,
+                soundEnabled = viewModel.gameState.soundEnabled,
+                soundManager = soundManager
             )
         }
     }

@@ -34,8 +34,6 @@ class GameViewModel(
     private val statsRepository: StatsRepository
 ) : ViewModel() {
 
-
-
     private val _gameEnded = MutableStateFlow(false)
     val gameEnded = _gameEnded.asStateFlow()
 
@@ -75,7 +73,29 @@ class GameViewModel(
     var selectedCategory by mutableStateOf<Category?>(null)
         private set
 
+    var customCategories by mutableStateOf<List<Category.Custom>>(emptyList())
+        private set
+
+    var dontRepeatWords by mutableStateOf(false)
+        private set
+
     private var timerJob: Job? = null
+
+
+    fun addCustomCategory(category: Category.Custom) {
+        customCategories = customCategories + category
+    }
+
+    fun updateCustomCategory(old: Category.Custom, updated: Category.Custom) {
+        customCategories = customCategories.map { if (it == old) updated else it }
+        if (selectedCategory == old) selectedCategory = updated
+    }
+
+    fun deleteCustomCategory(category: Category.Custom) {
+        customCategories = customCategories.filterNot { it == category }
+        if (selectedCategory == category) selectedCategory = null
+    }
+
 
     fun setTimer(seconds: Int) {
         timerSetting = seconds
@@ -83,6 +103,13 @@ class GameViewModel(
 
     fun setCategory(category: Category?) {
         selectedCategory = category
+    }
+
+    fun onDontRepeatWordsChanged(enabled: Boolean) {
+        dontRepeatWords = enabled
+        if (!enabled) {
+            statsRepository.clearSeenWords()
+        }
     }
 
     fun prepareNewGame() {
@@ -220,7 +247,8 @@ class GameViewModel(
             repository.loadAllWords()
         }
 
-        val availableWords = allWords.filterNot { it in gameState.usedWords }
+        val seenWords = if (dontRepeatWords) statsRepository.loadStatistics().seenWords else emptySet()
+        val availableWords = allWords.filterNot { it in gameState.usedWords || it in seenWords }
 
         val nextWord = if (availableWords.isNotEmpty()) {
             availableWords.random()
@@ -253,7 +281,7 @@ class GameViewModel(
                 players = gameMode.players
             )
         }
-        statsRepository.saveGameResult(result)
+        statsRepository.saveGameResult(result, gameState.usedWords)
     }
 
     fun resetGame() {
