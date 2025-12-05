@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,7 +57,8 @@ fun GameSettingsView(
     onVibrationChange: (Boolean) -> Unit,
     onSoundChange: (Boolean) -> Unit,
     onStartClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSetPlayersClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -91,7 +93,7 @@ fun GameSettingsView(
                 .verticalScroll(scrollState)
                 .padding(32.dp, 64.dp, 32.dp, 0.dp)
         ) {
-            Spacer(modifier = Modifier.height(32.dp)) // Space for the back button
+            Spacer(modifier = Modifier.height(32.dp))
             Text(
                 text = "NUSTATYMAI",
                 fontSize = 40.sp,
@@ -223,26 +225,59 @@ fun GameSettingsView(
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Start Button
-            Button(
-                onClick = onStartClick,
-                modifier = Modifier
-                    .width(200.dp)
-                    .height(60.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4CAF50),
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Text(
-                    text = "PRADĖTI",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
-                )
+            // Category setting
+            Text(
+                text = "REŽIMAI",
+                fontSize = 18.sp,
+                fontFamily = FontFamily.Monospace,
+                color = Color.White.copy(alpha = 0.8f)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Row() {
+                // Start Button
+                Button(
+                    onClick = onStartClick,
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(60.dp)
+                        .weight(0.4f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Text(
+                        text = "Vienas žaidėjas",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Spacer(Modifier.weight(0.02f))
+                Button(
+                    onClick = onSetPlayersClick,
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(60.dp)
+                        .weight(0.4f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD74E23),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Text(
+                        text = "Keli žaidėjai",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(32.dp))
         }
@@ -294,6 +329,7 @@ fun GameSettingsPreview(){
         onVibrationChange = {},
         onSoundChange = {},
         onStartClick = {},
-        onBackClick = {}
+        onBackClick = {},
+        onSetPlayersClick = {}
     )
 }

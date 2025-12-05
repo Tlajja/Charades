@@ -6,7 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.charades.data.Category
+import com.example.charades.data.GameMode
 import com.example.charades.data.GameResult
+import com.example.charades.data.Player
 import com.example.charades.data.StatsRepository
 import com.example.charades.data.WordRepository
 import kotlinx.coroutines.Job
@@ -32,12 +34,27 @@ class GameViewModel(
     private val statsRepository: StatsRepository
 ) : ViewModel() {
 
+
+
     private val _gameEnded = MutableStateFlow(false)
     val gameEnded = _gameEnded.asStateFlow()
 
     fun consumeGameEndEvent() {
         _gameEnded.value = false
     }
+
+    private val _multiplayerGameEnded = MutableStateFlow(false)
+    val multiplayerGameEnded = _multiplayerGameEnded.asStateFlow()
+
+    fun consumeMultiplayerGameEndEvent() {
+        _multiplayerGameEnded.value = false
+    }
+
+    private val _goToNextPlayer = MutableStateFlow(false)
+    val goToNextPlayer = _goToNextPlayer.asStateFlow()
+
+    fun consumeNextPlayerEvent() { _goToNextPlayer.value = false }
+
 
     fun setVibrationEnabled(enabled: Boolean) {
         gameState = gameState.copy(vibrationEnabled = enabled)
@@ -50,6 +67,8 @@ class GameViewModel(
     var gameState by mutableStateOf(GameState())
         private set
 
+    var gameMode by mutableStateOf(GameMode())
+        private set
     var timerSetting by mutableStateOf(60)
         private set
 
@@ -68,10 +87,37 @@ class GameViewModel(
 
     fun prepareNewGame() {
         timerJob?.cancel()
-        gameState = GameState(
-            timeLeft = if (timerSetting == 0) Int.MAX_VALUE else timerSetting,
-            vibrationEnabled = gameState.vibrationEnabled,
-            soundEnabled = gameState.soundEnabled
+        if(gameMode.isSinglePlayer) {
+            gameState = GameState(
+                timeLeft = if (timerSetting == 0) Int.MAX_VALUE else timerSetting,
+                vibrationEnabled = gameState.vibrationEnabled,
+                soundEnabled = gameState.soundEnabled
+            )
+        } else {
+            gameState = GameState(
+                timeLeft = if (timerSetting == 0) Int.MAX_VALUE else timerSetting,
+                points = 0,
+                vibrationEnabled = gameState.vibrationEnabled,
+                soundEnabled = gameState.soundEnabled
+            )
+        }
+    }
+
+    fun moveToNextPlayer() {
+        val currentPlayer = gameMode.getCurrentPlayer()
+        currentPlayer?.let {
+            gameMode = gameMode.updatePlayerScore(it.id, gameState.points)
+        }
+
+        gameMode = gameMode.copy(currentPlayerIndex = gameMode.getNextPlayerIndex())
+    }
+
+    fun setMultiplayerMode(playerNames: List<String>) {
+        val players = playerNames.mapIndexed { index, name -> Player(id = index.toString(), name = name) }
+        gameMode = GameMode (
+            isSinglePlayer = false,
+            players = players,
+            currentPlayerIndex = 0
         )
     }
 
@@ -106,7 +152,27 @@ class GameViewModel(
                 gameState = gameState.copy(timeLeft = time)
             }
             saveGameResult()
-            _gameEnded.value = true
+            if (gameMode.isSinglePlayer) {
+                _gameEnded.value = true
+            } else {
+                // Save current player score
+                val currentPlayer = gameMode.getCurrentPlayer()
+                currentPlayer?.let {
+                    gameMode = gameMode.updatePlayerScore(it.id, gameState.points)
+                }
+
+                // Check if last player
+                val nextIndex = gameMode.getNextPlayerIndex()
+                if (nextIndex == 0) {
+                    // all players played
+                    _multiplayerGameEnded.value = true
+                } else {
+                    // go to next player
+                    gameMode = gameMode.copy(currentPlayerIndex = nextIndex)
+                    _goToNextPlayer.value = true   // new flow event
+                }
+            }
+
         }
     }
 

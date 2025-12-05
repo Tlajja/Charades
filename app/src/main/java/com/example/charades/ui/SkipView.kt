@@ -1,6 +1,5 @@
 package com.example.charades.ui
 
-import android.media.MediaPlayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,12 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -23,24 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.example.charades.R
 
 @Composable
-fun SkipView(soundEnabled: Boolean) {
-    val mContext = LocalContext.current
-
-    // Correctly handle MediaPlayer lifecycle
-    if (soundEnabled) {
-        DisposableEffect(Unit) {
-            val mMediaPlayer = MediaPlayer.create(mContext, R.raw.skip)
-            mMediaPlayer.start()
-
-            onDispose {
-                if (mMediaPlayer.isPlaying) {
-                    mMediaPlayer.stop()
-                }
-                mMediaPlayer.release()
-            }
-        }
-    }
-
+fun SkipView() {
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -76,5 +56,5 @@ fun SkipView(soundEnabled: Boolean) {
 )
 @Composable
 fun SkipViewPreview(){
-    SkipView(soundEnabled = true)
+    SkipView()
 }

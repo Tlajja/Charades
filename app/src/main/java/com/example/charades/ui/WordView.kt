@@ -35,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.charades.R
+import com.example.charades.audio.SoundManager
 import com.example.charades.sensors.rememberGyroscope
 import java.util.Locale
 
@@ -45,6 +46,8 @@ fun WordView(
     isCountdownVisible: Boolean,
     countdownValue: Int,
     vibrationEnabled: Boolean,
+    soundEnabled: Boolean,
+    soundManager: SoundManager,
     onCorrect: () -> Unit,
     onSkip: () -> Unit,
     onBack: () -> Unit,
@@ -52,7 +55,7 @@ fun WordView(
     onResumeTimer: () -> Unit,
     inAppForeground: Boolean
 )
- {
+{
     val context = LocalContext.current
 
     LaunchedEffect(inAppForeground) {
@@ -63,7 +66,7 @@ fun WordView(
         }
     }
 
-     val vibrator = remember {
+    val vibrator = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vm = context.getSystemService(VibratorManager::class.java)
             vm.defaultVibrator
@@ -101,27 +104,29 @@ fun WordView(
         }
     }
 
-     val gyroscope = rememberGyroscope(inAppForeground)
-     var hasTriggered by remember(word) { mutableStateOf(false) }
+    val gyroscope = rememberGyroscope(inAppForeground)
+    var hasTriggered by remember(word) { mutableStateOf(false) }
 
-     if (!isCountdownVisible) {
-         LaunchedEffect(gyroscope.y) {
-             if (hasTriggered) return@LaunchedEffect
+    if (!isCountdownVisible) {
+        LaunchedEffect(gyroscope.y) {
+            if (hasTriggered) return@LaunchedEffect
 
-             when {
-                 gyroscope.y < -5f -> {
-                     hasTriggered = true
-                     if(vibrationEnabled) vibrateCorrect()
-                     onCorrect()
-                 }
-                 gyroscope.y > 5f -> {
-                     hasTriggered = true
-                     if(vibrationEnabled) vibrateSkip()
-                     onSkip()
-                 }
-             }
-         }
-     }
+            when {
+                gyroscope.y < -5f -> {
+                    hasTriggered = true
+                    if(vibrationEnabled) vibrateCorrect()
+                    if (soundEnabled) soundManager.playCorrect()
+                    onCorrect()
+                }
+                gyroscope.y > 5f -> {
+                    hasTriggered = true
+                    if(vibrationEnabled) vibrateSkip()
+                    if (soundEnabled) soundManager.playSkip()
+                    onSkip()
+                }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -178,7 +183,7 @@ fun WordView(
                     lineHeight = dynamicFontSize * 1.1f,
                     modifier = Modifier.alpha(if (readyToDraw) 1f else 0f),
                     onTextLayout = { textLayoutResult ->
-                        if (textLayoutResult.didOverflowHeight) {
+                        if (textLayoutResult.didOverflowHeight && !readyToDraw) {
                             dynamicFontSize *= 0.95f
                         } else {
                             readyToDraw = true
@@ -202,23 +207,6 @@ fun WordView(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun WordViewPreviewCountdown() {
-    WordView(
-        word = "",
-        timeLeft = 60,
-        isCountdownVisible = true,
-        countdownValue = 3,
-        vibrationEnabled = true,
-        onCorrect = {},
-        onSkip = {},
-        onBack = {},
-        onPauseTimer = {},
-        onResumeTimer = {},
-        inAppForeground = true
-    )
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -229,6 +217,8 @@ fun WordViewPreviewWord() {
         isCountdownVisible = false,
         countdownValue = 0,
         vibrationEnabled = true,
+        soundEnabled = true,
+        soundManager = SoundManager(LocalContext.current),
         onCorrect = {},
         onSkip = {},
         onBack = {},

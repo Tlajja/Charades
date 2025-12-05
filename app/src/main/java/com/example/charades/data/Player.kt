@@ -1,10 +1,11 @@
 package com.example.charades.data
 
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 @Serializable
 data class Player(
-    val id: String = System.currentTimeMillis().toString(),
+    val id: String,
     val name: String,
     val score: Int = 0
 )
@@ -22,9 +23,9 @@ data class GameMode(
         return (currentPlayerIndex + 1) % players.size
     }
 
-    fun updatePlayerScore(playerId: String, newScore: Int): GameMode {
+    fun updatePlayerScore(playerId: String, points: Int): GameMode {
         val updatedPlayers = players.map { player ->
-            if (player.id == playerId) player.copy(score = newScore) else player
+            if (player.id == playerId) player.copy(score = player.score + points) else player
         }
         return copy(players = updatedPlayers)
     }

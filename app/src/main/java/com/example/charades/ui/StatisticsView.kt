@@ -66,11 +66,14 @@ fun StatisticsView(
                 .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
             // Header with back button
-            Row(
+            Column (
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                IconButton(onClick = onBackClick) {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.align(Alignment.Start)
+                ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Grįžti",
@@ -78,7 +81,7 @@ fun StatisticsView(
                         modifier = Modifier.size(32.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.height(32.dp))
                 Text(
                     text = "STATISTIKA",
                     fontSize = 32.sp,
