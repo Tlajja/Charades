@@ -55,7 +55,8 @@ fun PlayerTransitionView(
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
                 color = Color.White,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                lineHeight = 48.sp
             )
             Spacer(modifier = Modifier.height(48.dp))
             Button(

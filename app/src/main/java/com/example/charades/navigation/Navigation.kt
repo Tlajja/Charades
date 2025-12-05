@@ -32,11 +32,9 @@ fun CharadesNavigation(inAppForeground: Boolean) {
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // 🟢 Sukuriam repo su remember, kad būtų tas pats objektas visur
     val wordRepository = remember { WordRepository(context) }
     val statsRepository = remember { StatsRepository(context) }
 
-    // 🟢 Aiškiai nurodom tipą viewModel<GameViewModel>
     val viewModel: GameViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -56,6 +54,7 @@ fun CharadesNavigation(inAppForeground: Boolean) {
 
     LaunchedEffect(gameHasEnded) {
         if (gameHasEnded) {
+            soundManager.playGameEnd()
             navController.navigate("game_over") {
                 popUpTo("start") { inclusive = false }
             }
@@ -65,6 +64,7 @@ fun CharadesNavigation(inAppForeground: Boolean) {
 
     LaunchedEffect(multiplayerGameHasEnded) {
         if (multiplayerGameHasEnded) {
+            soundManager.playGameEnd()
             navController.navigate("multiplayer_results") {
                 popUpTo("start") { inclusive = false }
             }
@@ -95,7 +95,7 @@ fun CharadesNavigation(inAppForeground: Boolean) {
         }
 
         composable("statistics") {
-            val stats = remember { statsRepository.loadStatistics() }
+            val stats = statsRepository.loadStatistics()
             StatisticsView(
                 statistics = stats,
                 onBackClick = { navController.navigateUp() },
@@ -105,6 +105,7 @@ fun CharadesNavigation(inAppForeground: Boolean) {
                 }
             )
         }
+
 
         composable("settings") {
             GameSettingsView(
@@ -117,6 +118,7 @@ fun CharadesNavigation(inAppForeground: Boolean) {
                 onVibrationChange = { viewModel.setVibrationEnabled(it) },
                 onSoundChange = { viewModel.setSoundEnabled(it) },
                 onStartClick = {
+                    viewModel.setGameModeToSinglePlayer()
                     viewModel.prepareNewGame()
                     navController.navigate("word")
                 },
@@ -168,9 +170,11 @@ fun CharadesNavigation(inAppForeground: Boolean) {
             CorrectView()
             LaunchedEffect(Unit) {
                 delay(1000)
-                viewModel.getNextWord()
-                navController.navigate("word") {
-                    popUpTo("word") { inclusive = true }
+                viewModel.onTurnEnd()
+                if (viewModel.gameState.timeLeft > 0) {
+                    navController.navigate("word") {
+                        popUpTo("word") { inclusive = true }
+                    }
                 }
             }
         }
@@ -179,9 +183,11 @@ fun CharadesNavigation(inAppForeground: Boolean) {
             SkipView()
             LaunchedEffect(Unit) {
                 delay(1000)
-                viewModel.getNextWord()
-                navController.navigate("word") {
-                    popUpTo("word") { inclusive = true }
+                viewModel.onTurnEnd()
+                if (viewModel.gameState.timeLeft > 0) {
+                    navController.navigate("word") {
+                        popUpTo("word") { inclusive = true }
+                    }
                 }
             }
         }
@@ -189,8 +195,8 @@ fun CharadesNavigation(inAppForeground: Boolean) {
         composable("game_over") {
             GameResultsView(
                 points = viewModel.gameState.points,
-                soundManager = soundManager,
                 onPlayAgain = {
+                    viewModel.setGameModeToSinglePlayer()
                     viewModel.prepareNewGame()
                     navController.navigate("word") {
                         popUpTo("start") { inclusive = false }
@@ -198,7 +204,9 @@ fun CharadesNavigation(inAppForeground: Boolean) {
                 },
                 onGoToStart = {
                     navController.popBackStack("start", inclusive = false)
-                }
+                },
+                category = viewModel.selectedCategory?.displayName,
+                timerSettings = viewModel.timerSetting
             )
         }
 
@@ -219,7 +227,13 @@ fun CharadesNavigation(inAppForeground: Boolean) {
                 players = viewModel.gameMode.getSortedPlayers(),
                 onBackToMenu = {
                     navController.popBackStack("start", inclusive = false)
-                }
+                },
+                onPlayAgain = {
+                    viewModel.resetMultiplayerGame()
+                    navController.navigate("player_transition")
+                },
+                category = viewModel.selectedCategory?.displayName,
+                timerSettings = viewModel.timerSetting
             )
         }
     }
@@ -227,7 +241,7 @@ fun CharadesNavigation(inAppForeground: Boolean) {
 
 @Composable
 private fun ManageSystemUi(route: String?) {
-    val isLandscapeOnly = route in listOf("word", "correct", "skip", "game_over", "player_transition", "multiplayer_results")
+    val isLandscapeOnly = route in listOf("word", "correct", "skip")
     val context = LocalContext.current
 
     DisposableEffect(route) {

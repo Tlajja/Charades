@@ -1,7 +1,6 @@
 package com.example.charades.data
 
 import kotlinx.serialization.Serializable
-import java.util.UUID
 
 @Serializable
 data class Player(

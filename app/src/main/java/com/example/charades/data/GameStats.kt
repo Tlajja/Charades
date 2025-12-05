@@ -11,7 +11,8 @@ data class GameResult(
     val points: Int,
     val timestamp: Long = System.currentTimeMillis(),
     val category: String?, // null means "All categories"
-    val timerSeconds: Int // 0 means unlimited
+    val timerSeconds: Int, // 0 means unlimited
+    val isMultiplayer: Boolean = false
 ) {
     fun getFormattedDate(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())

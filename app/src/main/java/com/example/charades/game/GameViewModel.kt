@@ -121,6 +121,16 @@ class GameViewModel(
         )
     }
 
+    fun setGameModeToSinglePlayer() {
+        gameMode = GameMode()
+    }
+
+    fun resetMultiplayerGame() {
+        val playersWithResetScores = gameMode.players.map { it.copy(score = 0) }
+        gameMode = gameMode.copy(players = playersWithResetScores, currentPlayerIndex = 0)
+        prepareNewGame()
+    }
+
     fun startGame() {
         if (gameState.isGameActive) return
 
@@ -151,28 +161,39 @@ class GameViewModel(
                 time--
                 gameState = gameState.copy(timeLeft = time)
             }
-            saveGameResult()
-            if (gameMode.isSinglePlayer) {
-                _gameEnded.value = true
-            } else {
-                // Save current player score
-                val currentPlayer = gameMode.getCurrentPlayer()
-                currentPlayer?.let {
-                    gameMode = gameMode.updatePlayerScore(it.id, gameState.points)
-                }
+            endTurn()
+        }
+    }
 
-                // Check if last player
-                val nextIndex = gameMode.getNextPlayerIndex()
-                if (nextIndex == 0) {
-                    // all players played
-                    _multiplayerGameEnded.value = true
-                } else {
-                    // go to next player
-                    gameMode = gameMode.copy(currentPlayerIndex = nextIndex)
-                    _goToNextPlayer.value = true   // new flow event
-                }
+    fun onTurnEnd() {
+        if (gameState.timeLeft <= 0) {
+            endTurn()
+        } else {
+            getNextWord()
+        }
+    }
+
+    private fun endTurn() {
+        saveGameResult()
+        if (gameMode.isSinglePlayer) {
+            _gameEnded.value = true
+        } else {
+            // Save current player score
+            val currentPlayer = gameMode.getCurrentPlayer()
+            currentPlayer?.let {
+                gameMode = gameMode.updatePlayerScore(it.id, gameState.points)
             }
 
+            // Check if last player
+            val nextIndex = gameMode.getNextPlayerIndex()
+            if (nextIndex == 0) {
+                // all players played
+                _multiplayerGameEnded.value = true
+            } else {
+                // go to next player
+                gameMode = gameMode.copy(currentPlayerIndex = nextIndex)
+                _goToNextPlayer.value = true   // new flow event
+            }
         }
     }
 
@@ -221,7 +242,8 @@ class GameViewModel(
         val result = GameResult(
             points = gameState.points,
             category = selectedCategory?.displayName,
-            timerSeconds = timerSetting
+            timerSeconds = timerSetting,
+            isMultiplayer = !gameMode.isSinglePlayer
         )
         statsRepository.saveGameResult(result)
     }

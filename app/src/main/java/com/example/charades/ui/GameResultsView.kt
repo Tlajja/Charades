@@ -17,7 +17,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -30,20 +29,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.charades.R
-import com.example.charades.audio.SoundManager
-import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun GameResultsView(
     points: Int,
-    soundManager: SoundManager,
     onPlayAgain: () -> Unit,
-    onGoToStart: () -> Unit
+    onGoToStart: () -> Unit,
+    category: String?,
+    timerSettings: Int
 ) {
-    LaunchedEffect(Unit) {
-        soundManager.playGameEnd()
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -109,6 +103,22 @@ fun GameResultsView(
                     fontFamily = FontFamily.Monospace
                 )
 
+                Text(
+                    text = "Kategorija: ${category ?: "Visi"}",
+                    fontSize = 16.sp,
+                    color = Color.White.copy(alpha = 0.85f),
+                    fontFamily = FontFamily.Monospace
+                )
+
+                if (timerSettings > 0) {
+                    Text(
+                        text = "Laikmatis: $timerSettings s",
+                        fontSize = 16.sp,
+                        color = Color.White.copy(alpha = 0.85f),
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
@@ -166,16 +176,14 @@ fun GameResultsView(
     }
 }
 
-
-
-
 @Preview
 @Composable
 fun GameResultsViewPreview() {
     GameResultsView(
         points = 12,
-        soundManager = SoundManager(LocalContext.current),
         onPlayAgain = {},
-        onGoToStart = {}
+        onGoToStart = {},
+        category = "Gyvūnai",
+        timerSettings = 60
     )
 }

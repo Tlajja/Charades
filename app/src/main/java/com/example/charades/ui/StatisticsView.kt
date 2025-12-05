@@ -3,8 +3,6 @@ package com.example.charades.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -84,7 +82,7 @@ fun StatisticsView(
                 Spacer(modifier = Modifier.height(32.dp))
                 Text(
                     text = "STATISTIKA",
-                    fontSize = 32.sp,
+                    fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
                     color = Color.White
@@ -294,6 +292,12 @@ fun GameResultCard(game: GameResult) {
                         color = Color(0xFFC3E88D),
                         fontFamily = FontFamily.Monospace
                     )
+                    Text(
+                        text = if (game.isMultiplayer) "MP" else "SP",
+                        fontSize = 12.sp,
+                        color = if (game.isMultiplayer) Color(0xFFF08080) else Color(0xFFA0A0A0),
+                        fontFamily = FontFamily.Monospace
+                    )
                 }
             }
             Text(
@@ -311,9 +315,9 @@ fun GameResultCard(game: GameResult) {
 @Composable
 fun StatisticsViewPreview() {
     val sampleGames = listOf(
-        GameResult(points = 15, category = "Gyvūnai", timerSeconds = 60),
-        GameResult(points = 12, category = null, timerSeconds = 45),
-        GameResult(points = 20, category = "Sportas", timerSeconds = 0)
+        GameResult(points = 15, category = "Gyvūnai", timerSeconds = 60, isMultiplayer = false),
+        GameResult(points = 12, category = null, timerSeconds = 45, isMultiplayer = true),
+        GameResult(points = 20, category = "Sportas", timerSeconds = 0, isMultiplayer = false)
     )
     StatisticsView(
         statistics = GameStatistics(sampleGames),
