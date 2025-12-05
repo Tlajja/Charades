@@ -169,11 +169,8 @@ fun CustomCategoryView(
                                 cursorColor = Color.White
                             ),
                             keyboardOptions = KeyboardOptions.Default.copy(
-                                imeAction = ImeAction.Done,
+                                imeAction = ImeAction.Next,
                                 keyboardType = KeyboardType.Text
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = { focusManager.clearFocus() }
                             )
                         )
 
@@ -212,32 +209,6 @@ fun CustomCategoryView(
                                     onDone = { focusManager.clearFocus() }
                                 )
                             )
-
-                            IconButton(
-                                onClick = {
-                                    val cleaned = currentWord.trim()
-                                    if (cleaned.isNotEmpty() && !words.contains(cleaned)) {
-                                        words = words + cleaned
-                                        currentWord = ""
-                                    }
-                                },
-                                enabled = currentWord.trim().isNotEmpty(),
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .background(
-                                        color = if (currentWord.trim().isNotEmpty())
-                                            Color(0xFF4CAF50)
-                                        else
-                                            Color.Gray.copy(alpha = 0.3f),
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Pridėti",
-                                    tint = Color.White
-                                )
-                            }
                         }
 
                         // Words Display - Column Layout
