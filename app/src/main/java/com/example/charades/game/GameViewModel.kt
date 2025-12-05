@@ -174,8 +174,8 @@ class GameViewModel(
     }
 
     private fun endTurn() {
-        saveGameResult()
         if (gameMode.isSinglePlayer) {
+            saveGameResult()
             _gameEnded.value = true
         } else {
             // Save current player score
@@ -188,6 +188,7 @@ class GameViewModel(
             val nextIndex = gameMode.getNextPlayerIndex()
             if (nextIndex == 0) {
                 // all players played
+                saveGameResult()
                 _multiplayerGameEnded.value = true
             } else {
                 // go to next player
@@ -239,12 +240,19 @@ class GameViewModel(
     }
 
     fun saveGameResult() {
-        val result = GameResult(
-            points = gameState.points,
-            category = selectedCategory?.displayName,
-            timerSeconds = timerSetting,
-            isMultiplayer = !gameMode.isSinglePlayer
-        )
+        val result = if (gameMode.isSinglePlayer) {
+            GameResult(
+                score = gameState.points,
+                category = selectedCategory?.displayName,
+                timerSeconds = timerSetting
+            )
+        } else {
+            GameResult(
+                category = selectedCategory?.displayName,
+                timerSeconds = timerSetting,
+                players = gameMode.players
+            )
+        }
         statsRepository.saveGameResult(result)
     }
 

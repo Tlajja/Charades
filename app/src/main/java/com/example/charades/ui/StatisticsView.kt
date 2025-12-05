@@ -18,12 +18,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.charades.R
 import com.example.charades.data.GameResult
 import com.example.charades.data.GameStatistics
+import com.example.charades.data.Player
 
 @Composable
 fun StatisticsView(
@@ -81,35 +83,12 @@ fun StatisticsView(
                 }
                 Spacer(modifier = Modifier.height(32.dp))
                 Text(
-                    text = "STATISTIKA",
+                    text = "Žaidimų Istorija",
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
-                    color = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Statistics Summary
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StatCard(
-                    title = "Žaista",
-                    value = statistics.getTotalGames().toString(),
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    title = "Rekordas",
-                    value = statistics.getHighScore().toString(),
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    title = "Vidurkis",
-                    value = String.format("%.1f", statistics.getAverageScore()),
-                    modifier = Modifier.weight(1f)
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
                 )
             }
 
@@ -163,7 +142,11 @@ fun StatisticsView(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     statistics.getRecentGames(20).forEach { game ->
-                        GameResultCard(game)
+                        if (game.isMultiplayer) {
+                            MultiplayerResultCard(game)
+                        } else {
+                            GameResultCard(game)
+                        }
                     }
                 }
             }
@@ -292,16 +275,10 @@ fun GameResultCard(game: GameResult) {
                         color = Color(0xFFC3E88D),
                         fontFamily = FontFamily.Monospace
                     )
-                    Text(
-                        text = if (game.isMultiplayer) "MP" else "SP",
-                        fontSize = 12.sp,
-                        color = if (game.isMultiplayer) Color(0xFFF08080) else Color(0xFFA0A0A0),
-                        fontFamily = FontFamily.Monospace
-                    )
                 }
             }
             Text(
-                text = game.points.toString(),
+                text = game.totalScore.toString(),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF4CAF50),
@@ -311,13 +288,84 @@ fun GameResultCard(game: GameResult) {
     }
 }
 
+@Composable
+fun MultiplayerResultCard(game: GameResult) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = Color.Black.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = game.getFormattedDate(),
+                    fontSize = 14.sp,
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontFamily = FontFamily.Monospace
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = game.getCategoryDisplay(),
+                        fontSize = 12.sp,
+                        color = Color(0xFF82B1FF),
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Text(
+                        text = game.getTimerDisplay(),
+                        fontSize = 12.sp,
+                        color = Color(0xFFC3E88D),
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+
+            Divider(color = Color.White.copy(alpha = 0.2f), thickness = 1.dp)
+
+            game.players.sortedByDescending { it.score }.forEachIndexed { index, player ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "#${index + 1} ${player.name}",
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = Color.White
+                    )
+                    Text(
+                        text = player.score.toString(),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace,
+                        color = Color(0xFF4CAF50)
+                    )
+                }
+            }
+        }
+    }
+}
+
+
 @Preview
 @Composable
 fun StatisticsViewPreview() {
+    val samplePlayers = listOf(
+        Player(id = "1", name = "Alice", score = 12),
+        Player(id = "2", name = "Bob", score = 8)
+    )
     val sampleGames = listOf(
-        GameResult(points = 15, category = "Gyvūnai", timerSeconds = 60, isMultiplayer = false),
-        GameResult(points = 12, category = null, timerSeconds = 45, isMultiplayer = true),
-        GameResult(points = 20, category = "Sportas", timerSeconds = 0, isMultiplayer = false)
+        GameResult(score = 15, category = "Gyvūnai", timerSeconds = 60),
+        GameResult(category = null, timerSeconds = 45, players = samplePlayers),
+        GameResult(score = 20, category = "Sportas", timerSeconds = 0)
     )
     StatisticsView(
         statistics = GameStatistics(sampleGames),

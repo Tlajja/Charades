@@ -119,7 +119,7 @@ fun GameStartScreen(
                 )
             ) {
                 Text(
-                    text = "STATISTIKA",
+                    text = "ISTORIJA",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace
