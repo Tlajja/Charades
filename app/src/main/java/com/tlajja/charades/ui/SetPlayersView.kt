@@ -111,7 +111,7 @@ fun SetPlayersView(
                     IconButton(
                         onClick = {
                             if (players.size > 2) {
-                                players.removeLast()
+                                players.removeAt(players.size - 1)
                             }
                         }
                     ) {
