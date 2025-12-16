@@ -11,25 +11,19 @@ data class Player(
 
 data class GameMode(
     val isSinglePlayer: Boolean = true,
+    val isTeamMode: Boolean = false,
     val players: List<Player> = emptyList(),
-    val currentPlayerIndex: Int = 0
+    val currentPlayerIndex: Int = 0,
+    val totalRounds: Int = 1,
+    val currentRound: Int = 1
 ) {
-    fun getCurrentPlayer(): Player? {
-        return players.getOrNull(currentPlayerIndex)
-    }
-
-    fun getNextPlayerIndex(): Int {
-        return (currentPlayerIndex + 1) % players.size
-    }
+    fun getCurrentPlayer(): Player? = players.getOrNull(currentPlayerIndex)
+    fun getNextPlayerIndex(): Int = (currentPlayerIndex + 1) % players.size
 
     fun updatePlayerScore(playerId: String, points: Int): GameMode {
-        val updatedPlayers = players.map { player ->
-            if (player.id == playerId) player.copy(score = player.score + points) else player
-        }
-        return copy(players = updatedPlayers)
+        val updated = players.map { p -> if (p.id == playerId) p.copy(score = p.score + points) else p }
+        return copy(players = updated)
     }
 
-    fun getSortedPlayers(): List<Player> {
-        return players.sortedByDescending { it.score }
-    }
+    fun getSortedPlayers(): List<Player> = players.sortedByDescending { it.score }
 }

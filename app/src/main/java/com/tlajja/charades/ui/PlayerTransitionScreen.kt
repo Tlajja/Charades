@@ -31,11 +31,12 @@ import com.tlajja.charades.R
 fun PlayerTransitionView(
     playerName: String,
     currentScore: Int,
+    currentRound: Int? = null,
+    totalRounds: Int? = null,
     onStartTurn: () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -44,11 +45,26 @@ fun PlayerTransitionView(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
+
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+
+            // ✅ Raundas X / N (rodoma tik jei paduota)
+            if (currentRound != null && totalRounds != null && totalRounds > 1) {
+                Text(
+                    text = "Raundas $currentRound / $totalRounds",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.White.copy(alpha = 0.85f),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             Text(
                 text = "Dabar žaidžia: $playerName",
                 fontSize = 40.sp,
@@ -60,13 +76,14 @@ fun PlayerTransitionView(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+
             Spacer(modifier = Modifier.height(48.dp))
+
             Button(
                 onClick = onStartTurn,
                 modifier = Modifier
                     .width(200.dp)
                     .height(60.dp),
-
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF4CAF50),
                     contentColor = Color.White
@@ -83,7 +100,7 @@ fun PlayerTransitionView(
             }
         }
     }
-
 }
+
 
 

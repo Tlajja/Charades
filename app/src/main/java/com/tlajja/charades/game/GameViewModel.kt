@@ -28,6 +28,7 @@ data class GameState(
     val countdownValue: Int = 3,
     val vibrationEnabled: Boolean = true,
     val soundEnabled: Boolean = true
+
 )
 
 class GameViewModel(
@@ -42,6 +43,23 @@ class GameViewModel(
     fun consumeGameEndEvent() {
         _gameEnded.value = false
     }
+
+    fun setTeamMode(teamNames: List<String>, rounds: Int) {
+        val teamsAsPlayers = teamNames.mapIndexed { index, name ->
+            Player(id = index.toString(), name = name)
+        }
+
+        gameMode = GameMode(
+            isSinglePlayer = false,
+            isTeamMode = true,
+            players = teamsAsPlayers,
+            currentPlayerIndex = 0,
+            totalRounds = rounds.coerceAtLeast(1),
+            currentRound = 1
+        )
+    }
+
+
 
     private val _multiplayerGameEnded = MutableStateFlow(false)
     val multiplayerGameEnded = _multiplayerGameEnded.asStateFlow()
@@ -163,10 +181,15 @@ class GameViewModel(
     }
 
     fun resetMultiplayerGame() {
-        val playersWithResetScores = gameMode.players.map { it.copy(score = 0) }
-        gameMode = gameMode.copy(players = playersWithResetScores, currentPlayerIndex = 0)
+        val resetScores = gameMode.players.map { it.copy(score = 0) }
+        gameMode = gameMode.copy(
+            players = resetScores,
+            currentPlayerIndex = 0,
+            currentRound = 1
+        )
         prepareNewGame()
     }
+
 
     fun startGame() {
         if (gameState.isGameActive) return
@@ -214,26 +237,44 @@ class GameViewModel(
         if (gameMode.isSinglePlayer) {
             saveGameResult()
             _gameEnded.value = true
-        } else {
-            // Save current player score
-            val currentPlayer = gameMode.getCurrentPlayer()
-            currentPlayer?.let {
-                gameMode = gameMode.updatePlayerScore(it.id, gameState.points)
-            }
+            return
+        }
 
-            // Check if last player
-            val nextIndex = gameMode.getNextPlayerIndex()
+        val current = gameMode.getCurrentPlayer()
+        current?.let { gameMode = gameMode.updatePlayerScore(it.id, gameState.points) }
+
+        val nextIndex = gameMode.getNextPlayerIndex()
+
+        if (gameMode.isTeamMode) {
             if (nextIndex == 0) {
-                // all players played
-                saveGameResult()
-                _multiplayerGameEnded.value = true
+                val nextRound = gameMode.currentRound + 1
+                if (nextRound > gameMode.totalRounds) {
+                    saveGameResult()
+                    _multiplayerGameEnded.value = true
+                } else {
+                    gameMode = gameMode.copy(
+                        currentPlayerIndex = 0,
+                        currentRound = nextRound
+                    )
+                    _goToNextPlayer.value = true
+                }
             } else {
-                // go to next player
                 gameMode = gameMode.copy(currentPlayerIndex = nextIndex)
-                _goToNextPlayer.value = true   // new flow event
+                _goToNextPlayer.value = true
             }
+            return
+        }
+
+        if (nextIndex == 0) {
+            saveGameResult()
+            _multiplayerGameEnded.value = true
+        } else {
+            gameMode = gameMode.copy(currentPlayerIndex = nextIndex)
+            _goToNextPlayer.value = true
         }
     }
+
+
 
     fun pauseTimer() {
         timerJob?.cancel()

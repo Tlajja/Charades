@@ -131,9 +131,21 @@ fun CharadesNavigation(inAppForeground: Boolean) {
                     navController.navigate("word")
                 },
                 onBackClick = { navController.navigateUp() },
-                onSetPlayersClick = { navController.navigate("set_players") }
+                onSetPlayersClick = { navController.navigate("set_players") },
+                onTeamModeClick = { navController.navigate("set_teams") }
             )
         }
+
+        composable("set_teams") {
+            SetTeamsView(
+                onBackClick = { navController.navigateUp() },
+                onStartClick = { teamNames, rounds ->
+                    viewModel.setTeamMode(teamNames, rounds)
+                    navController.navigate("player_transition")
+                }
+            )
+        }
+
 
 
         composable("custom_categories") {
@@ -237,12 +249,16 @@ fun CharadesNavigation(inAppForeground: Boolean) {
             PlayerTransitionView(
                 playerName = currentPlayer?.name ?: "",
                 currentScore = currentPlayer?.score ?: 0,
+                currentRound = viewModel.gameMode.currentRound,
+                totalRounds = viewModel.gameMode.totalRounds,
                 onStartTurn = {
                     viewModel.prepareNewGame()
                     navController.navigate("word")
                 }
             )
         }
+
+
 
         composable("multiplayer_results") {
             MultiplayerResultsView(

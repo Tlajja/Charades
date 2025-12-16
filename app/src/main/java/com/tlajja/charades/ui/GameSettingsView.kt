@@ -74,7 +74,8 @@ fun GameSettingsView(
     onDontRepeatWordsChange: (Boolean) -> Unit,
     onStartClick: () -> Unit,
     onBackClick: () -> Unit,
-    onSetPlayersClick: () -> Unit
+    onSetPlayersClick: () -> Unit,
+    onTeamModeClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
@@ -403,48 +404,73 @@ fun GameSettingsView(
             Spacer(modifier = Modifier.height(24.dp))
 
             // MODE BUTTONS
-            Row {
+            Column(){
+                Row {
+                    Button(
+                        onClick = onStartClick,
+                        modifier = Modifier
+                            .width(200.dp)
+                            .height(60.dp)
+                            .weight(0.4f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF4CAF50),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Text(
+                            text = "Vienas žaidėjas",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    Spacer(Modifier.weight(0.02f))
+                    Button(
+                        onClick = onSetPlayersClick,
+                        modifier = Modifier
+                            .width(200.dp)
+                            .height(60.dp)
+                            .weight(0.4f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD74E23),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Text(
+                            text = "Keli žaidėjai",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
                 Button(
-                    onClick = onStartClick,
+                    onClick = onTeamModeClick,
                     modifier = Modifier
                         .width(200.dp)
                         .height(60.dp)
-                        .weight(0.4f),
+                        .align(Alignment.CenterHorizontally),
+
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF4CAF50),
+                        containerColor = Color(0xFF3F51B5),
                         contentColor = Color.White
                     ),
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Text(
-                        text = "Vienas žaidėjas",
+                        text = "Komandos",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
                         textAlign = TextAlign.Center
                     )
                 }
-                Spacer(Modifier.weight(0.02f))
-                Button(
-                    onClick = onSetPlayersClick,
-                    modifier = Modifier
-                        .width(200.dp)
-                        .height(60.dp)
-                        .weight(0.4f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD74E23),
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                ) {
-                    Text(
-                        text = "Keli žaidėjai",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        textAlign = TextAlign.Center
-                    )
-                }
+
             }
             Spacer(modifier = Modifier.height(32.dp))
         }
@@ -512,4 +538,6 @@ fun CategoryButton(
         }
     }
 }
+
+
 
