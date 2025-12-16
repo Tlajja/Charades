@@ -269,16 +269,24 @@ private fun ManageSystemUi(route: String?) {
     val isLandscapeOnly = route in listOf("word", "correct", "skip")
     val context = LocalContext.current
 
+    // Effect to hide system bars.
+    // It runs on every route change to ensure the bars stay hidden.
     DisposableEffect(route) {
         val activity = context as? Activity ?: return@DisposableEffect onDispose {}
         val window = activity.window
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
-        // Always hide system bars for all game screens
         insetsController.hide(WindowInsetsCompat.Type.systemBars())
         insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
-        // Only lock to landscape for gameplay screens
+        onDispose {}
+    }
+
+    // Effect to manage screen orientation.
+    // It only runs when the landscape requirement changes to prevent flickering between landscape screens.
+    DisposableEffect(isLandscapeOnly) {
+        val activity = context as? Activity ?: return@DisposableEffect onDispose {}
+
         if (isLandscapeOnly) {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         } else {
@@ -286,6 +294,7 @@ private fun ManageSystemUi(route: String?) {
         }
 
         onDispose {
+            // When leaving a landscape screen, unlock the orientation.
             if (isLandscapeOnly) {
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
