@@ -377,8 +377,11 @@ fun GameSettingsView(
                             "„Vienas žaidėjas“ – žaidžia vienas žmogus su telefonu, renka savo taškus.\n\n" +
                                     "„Keli žaidėjai“ – galite įvesti kelis žaidėjus. Kiekvienas žaidėjas paeiliui " +
                                     "žaidžia savo raundą, o po visų raundų parodoma bendra rezultatų lentelė.\n\n" +
-                                    "Visi nustatymai (laikmatis, kategorija, vibracija, garsai) taikomi abiem režimams."
+                                    "„Komandos“ – galite susikurti 2 ar daugiau komandų ir pasirinkti, kiek raundų žaisite. " +
+                                    "Komandos žaidžia paeiliui, o taškai sumuojami komandai. Pasibaigus visiems raundams parodoma komandų rezultatų lentelė.\n\n" +
+                                    "Visi nustatymai (laikmatis, kategorija, vibracija, garsai) taikomi visiems režimams."
                         )
+
                     }
                 },
                 state = modesTooltipState,

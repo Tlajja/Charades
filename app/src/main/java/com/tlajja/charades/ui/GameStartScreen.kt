@@ -71,7 +71,7 @@ fun GameStartScreen(
                 letterSpacing = 4.sp
             )
             Text(
-                text = "Rodyk, spėk, laimėk!",
+                text = "Spėk, atspėk ir laimėk!",
                 fontSize = 16.sp,
                 fontFamily = FontFamily.Monospace,
                 color = Color.White.copy(alpha = 0.9f)
@@ -205,11 +205,14 @@ fun RulesDialog(onDismissRequest: () -> Unit) {
                     text = "Režimai:\n" +
                             "• „Vienas žaidėjas“ – žaidžia vienas žmogus ir renka savo taškus.\n" +
                             "• „Keli žaidėjai“ – įveskite kelis žaidėjus, kiekvienas paeiliui žaidžia savo raundą, " +
-                            "o pabaigoje rodoma bendra rezultatų lentelė.",
+                            "o pabaigoje rodoma bendra rezultatų lentelė.\n" +
+                            "• „Komandos“ – susikurkite 2 ar daugiau komandų ir pasirinkite, kiek raundų žaisite. " +
+                            "Komandos žaidžia paeiliui, taškai sumuojami komandai, o pabaigoje rodoma komandų rezultatų lentelė.",
                     fontSize = 15.sp,
                     lineHeight = 18.sp,
                     fontFamily = FontFamily.Monospace
                 )
+
 
                 Text(
                     text = "Jei įjungtas nustatymas „Nekartoti žodžių tarp žaidimų“, " +
